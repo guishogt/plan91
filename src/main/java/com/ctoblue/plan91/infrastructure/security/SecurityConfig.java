@@ -27,11 +27,14 @@ public class SecurityConfig {
     private final UserDetailsService userDetailsService;
     private final RateLimitFilter rateLimitFilter;
     private final CsrfCookieFilter csrfCookieFilter;
+    private final OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler;
 
-    public SecurityConfig(UserDetailsService userDetailsService, RateLimitFilter rateLimitFilter, CsrfCookieFilter csrfCookieFilter) {
+    public SecurityConfig(UserDetailsService userDetailsService, RateLimitFilter rateLimitFilter,
+                          CsrfCookieFilter csrfCookieFilter, OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler) {
         this.userDetailsService = userDetailsService;
         this.rateLimitFilter = rateLimitFilter;
         this.csrfCookieFilter = csrfCookieFilter;
+        this.oAuth2LoginSuccessHandler = oAuth2LoginSuccessHandler;
     }
 
     @Bean
@@ -56,6 +59,10 @@ public class SecurityConfig {
                 .loginPage("/login")  // Custom login page
                 .defaultSuccessUrl("/dashboard", true)  // Redirect to dashboard after login
                 .permitAll()
+            )
+            .oauth2Login(oauth2 -> oauth2
+                .loginPage("/login")  // Same custom login page
+                .successHandler(oAuth2LoginSuccessHandler)  // Handle user creation
             )
             .logout(logout -> logout
                 .logoutSuccessUrl("/login?logout")  // Redirect to login with logout message

@@ -22,11 +22,19 @@ spring:
   flyway:
     enabled: false
 
-  # Security (will be configured in Epic 03)
+  # Security
   security:
     user:
       name: admin
       password: admin
+    # OAuth2 Client Configuration (Google)
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: ${GOOGLE_CLIENT_ID:}
+            client-secret: ${GOOGLE_CLIENT_SECRET:}
+            scope: openid, email, profile
 
 # Server Configuration
 server:
