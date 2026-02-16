@@ -27,14 +27,9 @@ spring:
     user:
       name: admin
       password: admin
-    # OAuth2 Client Configuration (Google)
-    oauth2:
-      client:
-        registration:
-          google:
-            client-id: ${GOOGLE_CLIENT_ID:}
-            client-secret: ${GOOGLE_CLIENT_SECRET:}
-            scope: openid, email, profile
+
+  # OAuth2 Client Configuration (Google) - Only active when env vars are set
+  # Set GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET environment variables to enable
 
 # Server Configuration
 server:

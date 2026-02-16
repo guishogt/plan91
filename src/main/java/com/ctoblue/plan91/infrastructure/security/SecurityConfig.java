@@ -1,5 +1,6 @@
 package com.ctoblue.plan91.infrastructure.security;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -29,12 +30,19 @@ public class SecurityConfig {
     private final CsrfCookieFilter csrfCookieFilter;
     private final OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler;
 
+    @Value("${spring.security.oauth2.client.registration.google.client-id:}")
+    private String googleClientId;
+
     public SecurityConfig(UserDetailsService userDetailsService, RateLimitFilter rateLimitFilter,
                           CsrfCookieFilter csrfCookieFilter, OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler) {
         this.userDetailsService = userDetailsService;
         this.rateLimitFilter = rateLimitFilter;
         this.csrfCookieFilter = csrfCookieFilter;
         this.oAuth2LoginSuccessHandler = oAuth2LoginSuccessHandler;
+    }
+
+    private boolean isOAuth2Enabled() {
+        return googleClientId != null && !googleClientId.isBlank();
     }
 
     @Bean
@@ -60,10 +68,6 @@ public class SecurityConfig {
                 .defaultSuccessUrl("/dashboard", true)  // Redirect to dashboard after login
                 .permitAll()
             )
-            .oauth2Login(oauth2 -> oauth2
-                .loginPage("/login")  // Same custom login page
-                .successHandler(oAuth2LoginSuccessHandler)  // Handle user creation
-            )
             .logout(logout -> logout
                 .logoutSuccessUrl("/login?logout")  // Redirect to login with logout message
                 .permitAll()
@@ -73,6 +77,14 @@ public class SecurityConfig {
                 .csrfTokenRepository(org.springframework.security.web.csrf.CookieCsrfTokenRepository.withHttpOnlyFalse())
                 .csrfTokenRequestHandler(new org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler())
             );
+
+        // Only enable OAuth2 login if Google credentials are configured
+        if (isOAuth2Enabled()) {
+            http.oauth2Login(oauth2 -> oauth2
+                .loginPage("/login")  // Same custom login page
+                .successHandler(oAuth2LoginSuccessHandler)  // Handle user creation
+            );
+        }
 
         return http.build();
     }

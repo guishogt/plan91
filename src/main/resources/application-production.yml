@@ -1,0 +1,35 @@
+# Production Configuration (Railway)
+
+spring:
+  profiles:
+    active: production
+
+  # Database - Railway MySQL
+  datasource:
+    url: ${MYSQL_URL}
+    username: ${MYSQL_USER:root}
+    password: ${MYSQL_PASSWORD}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    hikari:
+      maximum-pool-size: 5
+
+  # JPA
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+
+  # Flyway - Enabled in production
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+
+# Logging
+logging:
+  level:
+    root: INFO
+    com.ctoblue.plan91: INFO
+    org.hibernate.SQL: WARN
+
+# OAuth2 is configured via OAuth2ClientConfig.java when GOOGLE_CLIENT_ID is set

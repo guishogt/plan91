@@ -4,6 +4,7 @@ import com.ctoblue.plan91.adapter.out.persistence.entity.HabitPractitionerEntity
 import com.ctoblue.plan91.adapter.out.persistence.entity.UserEntity;
 import com.ctoblue.plan91.adapter.out.persistence.repository.HabitPractitionerJpaRepository;
 import com.ctoblue.plan91.adapter.out.persistence.repository.UserJpaRepository;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,6 +31,9 @@ public class AuthController {
     private final HabitPractitionerJpaRepository practitionerRepository;
     private final PasswordEncoder passwordEncoder;
 
+    @Value("${GOOGLE_CLIENT_ID:}")
+    private String googleClientId;
+
     public AuthController(
             UserJpaRepository userRepository,
             HabitPractitionerJpaRepository practitionerRepository,
@@ -39,11 +43,16 @@ public class AuthController {
         this.passwordEncoder = passwordEncoder;
     }
 
+    private boolean isOAuth2Enabled() {
+        return googleClientId != null && !googleClientId.isBlank();
+    }
+
     /**
      * Display the login page.
      */
     @GetMapping("/login")
-    public String loginPage() {
+    public String loginPage(Model model) {
+        model.addAttribute("oauth2Enabled", isOAuth2Enabled());
         return "pages/login";
     }
 
