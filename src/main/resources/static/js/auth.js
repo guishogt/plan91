@@ -1,37 +1,46 @@
 /**
- * Simple authentication helper for Plan 91.
- *
- * For development, we use localStorage to simulate authentication.
- * TODO: Replace with proper authentication in production.
+ * Authentication helper for Plan 91.
+ * Fetches user info from the server and stores in localStorage.
  */
 
-// Available test users (real IDs from database)
-const TEST_USERS = {
-    demo: {
-        id: '83a5a779-ffd0-11f0-bfe5-4aaad1f3cde9',
-        email: 'demo@plan91.com',
-        name: 'Demo User'
-    },
-    luis: {
-        id: '8fbdd1fe-ffe8-11f0-bfe5-4aaad1f3cde9',
-        email: 'luis@fernandezgt.com',
-        name: 'Luis Fernandez'
-    },
-    luisShort: {
-        id: 'a4dcf0f6-fff9-11f0-bfe5-4aaad1f3cde9',
-        email: 'l@l.com',
-        name: 'Luis'
-    }
-};
+// Fetch current user info from server
+async function fetchCurrentUser() {
+    try {
+        const response = await fetch('/api/me', {
+            credentials: 'same-origin'
+        });
 
-// Fix old invalid practitioner ID
-const currentId = localStorage.getItem('practitionerId');
-const validIds = [TEST_USERS.demo.id, TEST_USERS.luis.id, TEST_USERS.luisShort.id];
-if (!currentId || !validIds.includes(currentId)) {
-    console.log('Fixing invalid practitioner ID...');
-    localStorage.setItem('practitionerId', TEST_USERS.luisShort.id);
-    localStorage.setItem('userEmail', TEST_USERS.luisShort.email);
-    localStorage.setItem('userName', TEST_USERS.luisShort.name);
+        if (response.status === 401 || response.status === 403) {
+            // Not logged in - redirect to login
+            console.log('Not authenticated, redirecting to login...');
+            window.location.href = '/login';
+            return null;
+        }
+
+        if (response.status === 404) {
+            // User exists but no practitioner - this shouldn't happen normally
+            console.error('Practitioner not found for logged-in user');
+            return null;
+        }
+
+        if (!response.ok) {
+            console.error('Failed to fetch user info:', response.status);
+            return null;
+        }
+
+        const user = await response.json();
+
+        // Store in localStorage for quick access
+        localStorage.setItem('practitionerId', user.practitionerId);
+        localStorage.setItem('userEmail', user.email);
+        localStorage.setItem('userName', user.firstName + ' ' + user.lastName);
+
+        console.log('User info loaded:', user.firstName, user.lastName);
+        return user;
+    } catch (error) {
+        console.error('Error fetching user info:', error);
+        return null;
+    }
 }
 
 // Helper function to get current practitioner ID
@@ -49,18 +58,18 @@ function logout() {
     localStorage.removeItem('practitionerId');
     localStorage.removeItem('userEmail');
     localStorage.removeItem('userName');
-    window.location.href = '/login';
+    window.location.href = '/logout';
 }
 
-// Helper function to switch user (for testing)
-function switchUser(userId, email, name) {
-    localStorage.setItem('practitionerId', userId);
-    localStorage.setItem('userEmail', email);
-    localStorage.setItem('userName', name);
-    window.location.reload();
-}
+// Initialize on page load
+(async function() {
+    console.log('Plan 91 Auth Helper loading...');
 
-console.log('Plan 91 Auth Helper loaded');
-console.log('Current user:', localStorage.getItem('userName'), '(' + localStorage.getItem('userEmail') + ')');
-console.log('Practitioner ID:', localStorage.getItem('practitionerId'));
-console.log('\nTo switch users, use: switchUser(TEST_USERS.demo.id, TEST_USERS.demo.email, TEST_USERS.demo.name)');
+    // Always fetch fresh user info from server
+    const user = await fetchCurrentUser();
+
+    if (user) {
+        console.log('Authenticated as:', user.email);
+        console.log('Practitioner ID:', user.practitionerId);
+    }
+})();

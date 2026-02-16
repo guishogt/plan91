@@ -11,6 +11,10 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.http.ResponseEntity;
+import java.util.Map;
+import java.util.HashMap;
 
 import java.time.Instant;
 
@@ -128,6 +132,31 @@ public class AuthController {
             model.addAttribute("timezone", timezone);
             return "pages/register";
         }
+    }
+
+    /**
+     * API endpoint to get current user's info (practitioner ID, etc.)
+     */
+    @GetMapping("/api/me")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> getCurrentUser(java.security.Principal principal) {
+        if (principal == null) {
+            return ResponseEntity.status(401).build();
+        }
+
+        String email = principal.getName();
+
+        return practitionerRepository.findByEmail(email)
+                .map(practitioner -> {
+                    Map<String, Object> response = new HashMap<>();
+                    response.put("practitionerId", practitioner.getId().toString());
+                    response.put("email", practitioner.getEmail());
+                    response.put("firstName", practitioner.getFirstName());
+                    response.put("lastName", practitioner.getLastName());
+                    response.put("timezone", practitioner.getOriginalTimezone());
+                    return ResponseEntity.ok(response);
+                })
+                .orElse(ResponseEntity.notFound().build());
     }
 
     /**
