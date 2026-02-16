@@ -12,6 +12,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.csrf.CsrfFilter;
 
 /**
  * Spring Security configuration for Plan 91.
@@ -25,16 +26,19 @@ public class SecurityConfig {
 
     private final UserDetailsService userDetailsService;
     private final RateLimitFilter rateLimitFilter;
+    private final CsrfCookieFilter csrfCookieFilter;
 
-    public SecurityConfig(UserDetailsService userDetailsService, RateLimitFilter rateLimitFilter) {
+    public SecurityConfig(UserDetailsService userDetailsService, RateLimitFilter rateLimitFilter, CsrfCookieFilter csrfCookieFilter) {
         this.userDetailsService = userDetailsService;
         this.rateLimitFilter = rateLimitFilter;
+        this.csrfCookieFilter = csrfCookieFilter;
     }
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
             .addFilterBefore(rateLimitFilter, UsernamePasswordAuthenticationFilter.class)
+            .addFilterAfter(csrfCookieFilter, CsrfFilter.class)
             .authenticationProvider(authenticationProvider())
             .authorizeHttpRequests(authorize -> authorize
                 // Allow static resources without authentication
