@@ -1,7 +1,7 @@
 package com.ctoblue.plan91.infrastructure.security;
 
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
@@ -13,10 +13,10 @@ import org.springframework.security.oauth2.core.oidc.IdTokenClaimNames;
 
 /**
  * Conditional OAuth2 client configuration.
- * Only activates when GOOGLE_CLIENT_ID environment variable is set.
+ * Only activates when GOOGLE_CLIENT_ID environment variable is set to a non-empty value.
  */
 @Configuration
-@ConditionalOnProperty(name = "GOOGLE_CLIENT_ID")
+@ConditionalOnExpression("!'${GOOGLE_CLIENT_ID:}'.isEmpty()")
 public class OAuth2ClientConfig {
 
     @Value("${GOOGLE_CLIENT_ID}")
