@@ -2,7 +2,7 @@
 *.class
 target/
 build/
-out/
+/out/
 bin/
 
 # Package Files
