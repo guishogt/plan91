@@ -30,7 +30,7 @@ public class SecurityConfig {
     private final CsrfCookieFilter csrfCookieFilter;
     private final OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler;
 
-    @Value("${spring.security.oauth2.client.registration.google.client-id:}")
+    @Value("${GOOGLE_CLIENT_ID:}")
     private String googleClientId;
 
     public SecurityConfig(UserDetailsService userDetailsService, RateLimitFilter rateLimitFilter,
@@ -42,7 +42,8 @@ public class SecurityConfig {
     }
 
     private boolean isOAuth2Enabled() {
-        return googleClientId != null && !googleClientId.isBlank();
+        // Check for valid Google OAuth client ID (must contain 'googleusercontent.com')
+        return googleClientId != null && googleClientId.contains("googleusercontent.com");
     }
 
     @Bean
