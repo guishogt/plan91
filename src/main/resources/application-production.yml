@@ -1,9 +1,6 @@
 # Production Configuration (Railway)
 
 spring:
-  profiles:
-    active: production
-
   # Database - Railway MySQL
   datasource:
     url: ${MYSQL_URL}
