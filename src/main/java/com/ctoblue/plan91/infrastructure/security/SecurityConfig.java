@@ -28,22 +28,12 @@ public class SecurityConfig {
     private final UserDetailsService userDetailsService;
     private final RateLimitFilter rateLimitFilter;
     private final CsrfCookieFilter csrfCookieFilter;
-    private final OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler;
-
-    @Value("${GOOGLE_CLIENT_ID:}")
-    private String googleClientId;
 
     public SecurityConfig(UserDetailsService userDetailsService, RateLimitFilter rateLimitFilter,
-                          CsrfCookieFilter csrfCookieFilter, OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler) {
+                          CsrfCookieFilter csrfCookieFilter) {
         this.userDetailsService = userDetailsService;
         this.rateLimitFilter = rateLimitFilter;
         this.csrfCookieFilter = csrfCookieFilter;
-        this.oAuth2LoginSuccessHandler = oAuth2LoginSuccessHandler;
-    }
-
-    private boolean isOAuth2Enabled() {
-        // Check for valid Google OAuth client ID (must contain 'googleusercontent.com')
-        return googleClientId != null && googleClientId.contains("googleusercontent.com");
     }
 
     @Bean
@@ -79,13 +69,7 @@ public class SecurityConfig {
                 .csrfTokenRequestHandler(new org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler())
             );
 
-        // Only enable OAuth2 login if Google credentials are configured
-        if (isOAuth2Enabled()) {
-            http.oauth2Login(oauth2 -> oauth2
-                .loginPage("/login")  // Same custom login page
-                .successHandler(oAuth2LoginSuccessHandler)  // Handle user creation
-            );
-        }
+        // OAuth2 login temporarily disabled
 
         return http.build();
     }

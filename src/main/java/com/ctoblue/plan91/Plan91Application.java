@@ -2,8 +2,6 @@ package com.ctoblue.plan91;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.autoconfigure.security.oauth2.client.servlet.OAuth2ClientAutoConfiguration;
-import org.springframework.boot.autoconfigure.security.oauth2.resource.servlet.OAuth2ResourceServerAutoConfiguration;
 
 /**
  * Plan 91 - Habit Tracking Application
@@ -18,10 +16,7 @@ import org.springframework.boot.autoconfigure.security.oauth2.resource.servlet.O
  * @author Luis Martinez (CTOBlue)
  * @version 0.1.0-SNAPSHOT
  */
-@SpringBootApplication(exclude = {
-    OAuth2ClientAutoConfiguration.class,
-    OAuth2ResourceServerAutoConfiguration.class
-})
+@SpringBootApplication
 public class Plan91Application {
 
     public static void main(String[] args) {
