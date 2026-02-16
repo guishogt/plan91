@@ -13,10 +13,11 @@ import org.springframework.security.oauth2.core.oidc.IdTokenClaimNames;
 
 /**
  * Conditional OAuth2 client configuration.
- * Only activates when GOOGLE_CLIENT_ID environment variable is set to a non-empty value.
+ * Only activates when GOOGLE_CLIENT_ID contains a valid Google OAuth client ID
+ * (must contain 'googleusercontent.com' to be considered valid).
  */
 @Configuration
-@ConditionalOnExpression("!'${GOOGLE_CLIENT_ID:}'.isEmpty()")
+@ConditionalOnExpression("'${GOOGLE_CLIENT_ID:}'.contains('googleusercontent.com')")
 public class OAuth2ClientConfig {
 
     @Value("${GOOGLE_CLIENT_ID}")
