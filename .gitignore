@@ -137,3 +137,7 @@ yarn-error.log*
 # Generated CSS (compiled from Tailwind)
 src/main/resources/static/css/styles.css
 src/main/resources/static/css/styles.css.map
+
+# Project documentation and logs (not for public repo)
+epics/
+logs/
