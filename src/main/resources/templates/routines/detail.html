@@ -27,7 +27,9 @@
                 <a href="/habits" class="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium">My Habits</a>
                 <a href="/habits/browse" class="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium">Browse</a>
                 <a href="/habits/create" class="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium">Create</a>
-                <a href="/logout" class="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium">Logout</a>
+                <form th:action="@{/logout}" method="post" class="inline">
+                    <button type="submit" class="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium">Logout</button>
+                </form>
             </div>
         </div>
     </div>
@@ -38,7 +40,9 @@
             <a href="/habits" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-gray-100">My Habits</a>
             <a href="/habits/browse" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-gray-100">Browse</a>
             <a href="/habits/create" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-gray-100">Create</a>
-            <a href="/logout" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-gray-100">Logout</a>
+            <form th:action="@{/logout}" method="post" class="block">
+                <button type="submit" class="w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-gray-100">Logout</button>
+            </form>
         </div>
     </div>
 </nav>
