@@ -25,11 +25,12 @@ When starting work:
 
 ## Context Files Priority (Read in Order)
 1. `CURRENT_WORK.md` (this file) - What to do now
-2. `docs/PLAN91_SPECIFICATION.md` - Master specification
-3. `docs/DOMAIN-MODEL.md` - Domain model and business rules
-4. `docs/DECISIONS.md` - Why we made certain choices
-5. `epics/{epic-id}/EPIC.md` - Current epic overview
-6. `epics/{epic-id}/tickets/{ticket-id}.md` - Specific ticket
+2. `docs/EPIC_BREAKDOWN.md` - All epics and tickets at a glance
+3. `docs/PLAN91_SPECIFICATION.md` - Master specification
+4. `docs/DOMAIN-MODEL.md` - Domain model and business rules
+5. `docs/DECISIONS.md` - Why we made certain choices
+6. `epics/{epic-id}/EPIC.md` - Current epic overview
+7. `epics/{epic-id}/tickets/{ticket-id}.md` - Specific ticket
 
 ## Completed Tickets
 - ✅ PLAN91-001: Create project documentation structure (2026-01-29)
