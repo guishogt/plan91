@@ -11,6 +11,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 /**
  * Spring Security configuration for Plan 91.
@@ -23,14 +24,17 @@ import org.springframework.security.web.SecurityFilterChain;
 public class SecurityConfig {
 
     private final UserDetailsService userDetailsService;
+    private final RateLimitFilter rateLimitFilter;
 
-    public SecurityConfig(UserDetailsService userDetailsService) {
+    public SecurityConfig(UserDetailsService userDetailsService, RateLimitFilter rateLimitFilter) {
         this.userDetailsService = userDetailsService;
+        this.rateLimitFilter = rateLimitFilter;
     }
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
+            .addFilterBefore(rateLimitFilter, UsernamePasswordAuthenticationFilter.class)
             .authenticationProvider(authenticationProvider())
             .authorizeHttpRequests(authorize -> authorize
                 // Allow static resources without authentication
@@ -39,9 +43,8 @@ public class SecurityConfig {
                 .requestMatchers("/demo/**", "/test-**").permitAll()
                 // Allow authentication pages (login, register)
                 .requestMatchers("/login", "/register").permitAll()
-                // Allow API endpoints without authentication (for development)
-                // TODO: Implement proper API authentication (JWT/OAuth2) in production
-                .requestMatchers("/api/**").permitAll()
+                // API endpoints require authentication (session-based)
+                .requestMatchers("/api/**").authenticated()
                 // All other requests require authentication
                 .anyRequest().authenticated()
             )
@@ -54,9 +57,10 @@ public class SecurityConfig {
                 .logoutSuccessUrl("/login?logout")  // Redirect to login with logout message
                 .permitAll()
             )
-            // Disable CSRF for API endpoints (needed for JavaScript fetch)
+            // CSRF enabled - tokens provided via cookie for JavaScript fetch
             .csrf(csrf -> csrf
-                .ignoringRequestMatchers("/api/**")
+                .csrfTokenRepository(org.springframework.security.web.csrf.CookieCsrfTokenRepository.withHttpOnlyFalse())
+                .csrfTokenRequestHandler(new org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler())
             );
 
         return http.build();

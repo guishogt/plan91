@@ -250,7 +250,7 @@ async function searchHabits() {
     }
 
     try {
-        const response = await fetch(`/api/habits/search?q=${encodeURIComponent(query)}`);
+        const response = await secureFetch(`/api/habits/search?q=${encodeURIComponent(query)}`);
         if (!response.ok) throw new Error('Search failed');
 
         const habits = await response.json();
@@ -314,9 +314,8 @@ async function handleCreateHabit(e) {
     };
 
     try {
-        const response = await fetch('/api/habits', {
+        const response = await secureFetch('/api/habits', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(habitData)
         });
 
@@ -346,9 +345,8 @@ async function handleStartRoutine(e) {
     };
 
     try {
-        const response = await fetch('/api/routines', {
+        const response = await secureFetch('/api/routines', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(routineData)
         });
 

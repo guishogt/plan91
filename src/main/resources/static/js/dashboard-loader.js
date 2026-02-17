@@ -16,10 +16,10 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 async function loadDashboardData() {
     try {
-        // Load statistics and routines in parallel
+        // Load statistics and routines in parallel (using secureFetch for session auth)
         const [statsResponse, routinesResponse] = await Promise.all([
-            fetch(`/api/analytics/practitioners/${practitionerId}/statistics`),
-            fetch(`/api/routines/active?practitionerId=${practitionerId}`)
+            secureFetch(`/api/analytics/practitioners/${practitionerId}/statistics`),
+            secureFetch(`/api/routines/active?practitionerId=${practitionerId}`)
         ]);
 
         if (statsResponse.ok && routinesResponse.ok) {
@@ -339,11 +339,8 @@ function createCompleteEntryModal() {
         };
 
         try {
-            const response = await fetch('/api/entries', {
+            const response = await secureFetch('/api/entries', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
                 body: JSON.stringify(data)
             });
 

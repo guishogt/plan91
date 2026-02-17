@@ -28,6 +28,12 @@
             <!-- Login Card -->
             <div class="bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
 
+                <!-- Rate Limit Blocked Message -->
+                <div th:if="${param.blocked}" class="bg-danger-50 border border-danger-200 rounded-lg p-4 mb-6">
+                    <p class="text-danger-800 font-semibold">Too many failed login attempts</p>
+                    <p class="text-danger-700 text-sm mt-1">Please try again in <span th:text="${param.minutes}">15</span> minutes.</p>
+                </div>
+
                 <!-- Error Message (if any) -->
                 <div th:if="${param.error}" class="bg-danger-50 border border-danger-200 rounded-lg p-4 mb-6">
                     <p class="text-danger-800 font-semibold">Invalid username or password</p>
