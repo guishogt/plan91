@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+
+    <!-- Include Spring Boot's default configuration -->
+    <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
+    <include resource="org/springframework/boot/logging/logback/console-appender.xml"/>
+
+    <!-- Define log pattern -->
+    <property name="FILE_LOG_PATTERN"
+              value="%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"/>
+
+    <!-- Console Appender (colored output for development) -->
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>${CONSOLE_LOG_PATTERN}</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+    </appender>
+
+    <!-- File Appender with Rolling Policy -->
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>logs/plan91.log</file>
+        <encoder>
+            <pattern>${FILE_LOG_PATTERN}</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <!-- Daily rollover -->
+            <fileNamePattern>logs/plan91.%d{yyyy-MM-dd}.log</fileNamePattern>
+            <!-- Keep 30 days of history -->
+            <maxHistory>30</maxHistory>
+            <!-- Total size cap of 1GB -->
+            <totalSizeCap>1GB</totalSizeCap>
+        </rollingPolicy>
+    </appender>
+
+    <!-- ============================================ -->
+    <!-- Development Profile                          -->
+    <!-- ============================================ -->
+    <springProfile name="dev">
+        <!-- Plan 91 Application: DEBUG level -->
+        <logger name="com.ctoblue.plan91" level="DEBUG" additivity="false">
+            <appender-ref ref="CONSOLE"/>
+            <appender-ref ref="FILE"/>
+        </logger>
+
+        <!-- Spring Framework: INFO level -->
+        <logger name="org.springframework.web" level="INFO"/>
+        <logger name="org.springframework.security" level="DEBUG"/>
+        <logger name="org.springframework.boot" level="INFO"/>
+
+        <!-- Hibernate/JPA: Show SQL with parameters -->
+        <logger name="org.hibernate.SQL" level="DEBUG"/>
+        <logger name="org.hibernate.type.descriptor.sql.BasicBinder" level="TRACE"/>
+        <logger name="org.hibernate.orm.jdbc.bind" level="TRACE"/>
+
+        <!-- Flyway: INFO level -->
+        <logger name="org.flywaydb" level="INFO"/>
+
+        <!-- Root logger -->
+        <root level="INFO">
+            <appender-ref ref="CONSOLE"/>
+            <appender-ref ref="FILE"/>
+        </root>
+    </springProfile>
+
+    <!-- ============================================ -->
+    <!-- Test Profile                                 -->
+    <!-- ============================================ -->
+    <springProfile name="test">
+        <!-- Plan 91 Application: INFO level (less verbose for tests) -->
+        <logger name="com.ctoblue.plan91" level="INFO" additivity="false">
+            <appender-ref ref="CONSOLE"/>
+        </logger>
+
+        <!-- Spring Framework: WARN level (reduce test output) -->
+        <logger name="org.springframework" level="WARN"/>
+        <logger name="org.springframework.test" level="INFO"/>
+
+        <!-- Hibernate: WARN level (hide SQL in tests) -->
+        <logger name="org.hibernate" level="WARN"/>
+
+        <!-- Testcontainers: INFO level -->
+        <logger name="org.testcontainers" level="INFO"/>
+        <logger name="com.github.dockerjava" level="WARN"/>
+
+        <!-- Root logger -->
+        <root level="WARN">
+            <appender-ref ref="CONSOLE"/>
+        </root>
+    </springProfile>
+
+    <!-- ============================================ -->
+    <!-- Production Profile                           -->
+    <!-- ============================================ -->
+    <springProfile name="prod">
+        <!-- Plan 91 Application: INFO level -->
+        <logger name="com.ctoblue.plan91" level="INFO" additivity="false">
+            <appender-ref ref="CONSOLE"/>
+            <appender-ref ref="FILE"/>
+        </logger>
+
+        <!-- Spring Framework: WARN level -->
+        <logger name="org.springframework" level="WARN"/>
+
+        <!-- Hibernate: WARN level (no SQL in production) -->
+        <logger name="org.hibernate" level="WARN"/>
+
+        <!-- Security: INFO for authentication events -->
+        <logger name="org.springframework.security" level="INFO"/>
+
+        <!-- Root logger -->
+        <root level="INFO">
+            <appender-ref ref="CONSOLE"/>
+            <appender-ref ref="FILE"/>
+        </root>
+    </springProfile>
+
+    <!-- ============================================ -->
+    <!-- Default (if no profile specified)            -->
+    <!-- ============================================ -->
+    <springProfile name="default">
+        <logger name="com.ctoblue.plan91" level="DEBUG"/>
+        <root level="INFO">
+            <appender-ref ref="CONSOLE"/>
+            <appender-ref ref="FILE"/>
+        </root>
+    </springProfile>
+
+</configuration>

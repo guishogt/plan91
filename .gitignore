@@ -73,6 +73,7 @@ Thumbs.db
 logs/
 *.log
 log/
+plan91.log
 
 # Environment variables
 .env

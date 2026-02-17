@@ -1,3 +1,4 @@
+
 /**
  * Habit domain - Core domain with habit tracking and streak calculation.
  *
