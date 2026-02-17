@@ -93,11 +93,10 @@
     <!-- ============================================ -->
     <!-- Production Profile                           -->
     <!-- ============================================ -->
-    <springProfile name="prod">
+    <springProfile name="prod,production">
         <!-- Plan 91 Application: INFO level -->
         <logger name="com.ctoblue.plan91" level="INFO" additivity="false">
             <appender-ref ref="CONSOLE"/>
-            <appender-ref ref="FILE"/>
         </logger>
 
         <!-- Spring Framework: WARN level -->
@@ -109,10 +108,9 @@
         <!-- Security: INFO for authentication events -->
         <logger name="org.springframework.security" level="INFO"/>
 
-        <!-- Root logger -->
+        <!-- Root logger - only CONSOLE in containers -->
         <root level="INFO">
             <appender-ref ref="CONSOLE"/>
-            <appender-ref ref="FILE"/>
         </root>
     </springProfile>
 
