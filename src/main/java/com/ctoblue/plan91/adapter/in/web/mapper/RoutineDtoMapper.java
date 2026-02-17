@@ -24,6 +24,8 @@ public interface RoutineDtoMapper {
     @Mapping(target = "id", expression = "java(entity.getId().toString())")
     @Mapping(target = "habitId", expression = "java(entity.getHabit().getId().toString())")
     @Mapping(target = "habitName", source = "habit.name")
+    @Mapping(target = "trackingType", source = "habit.trackingType")
+    @Mapping(target = "numericUnit", source = "habit.numericUnitName")
     @Mapping(target = "practitionerId", expression = "java(entity.getPractitioner().getId().toString())")
     @Mapping(target = "recurrenceType", source = "recurrenceRule.type")
     @Mapping(target = "specificDays", expression = "java(parseSpecificDays(entity.getRecurrenceRule().getSpecificDays()))")

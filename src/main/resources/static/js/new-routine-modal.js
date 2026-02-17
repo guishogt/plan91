@@ -121,6 +121,27 @@ function createNewRoutineModal() {
                         </div>
 
                         <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Tracking Type</label>
+                            <div class="flex gap-4 mb-2">
+                                <label class="flex items-center">
+                                    <input type="radio" name="trackingType" value="BOOLEAN" checked class="mr-2" onchange="toggleUnitField()">
+                                    <span>Checkbox (done/not done)</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="radio" name="trackingType" value="NUMERIC" class="mr-2" onchange="toggleUnitField()">
+                                    <span>Numeric (enter a value)</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div id="unitField" class="hidden">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Unit (optional)</label>
+                            <input type="text" id="habitUnit"
+                                   class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                                   placeholder="e.g., yards, minutes, pages, reps">
+                        </div>
+
+                        <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Visibility</label>
                             <div class="flex gap-4">
                                 <label class="flex items-center">
@@ -263,18 +284,31 @@ function showCreateHabitForm() {
     showStep(2);
     document.getElementById('createHabitForm').reset();
     document.getElementById('habitCreateError').classList.add('hidden');
+    document.getElementById('unitField').classList.add('hidden');
+}
+
+function toggleUnitField() {
+    const trackingType = document.querySelector('input[name="trackingType"]:checked').value;
+    const unitField = document.getElementById('unitField');
+    if (trackingType === 'NUMERIC') {
+        unitField.classList.remove('hidden');
+    } else {
+        unitField.classList.add('hidden');
+    }
 }
 
 async function handleCreateHabit(e) {
     e.preventDefault();
 
     const visibility = document.querySelector('input[name="visibility"]:checked').value;
+    const trackingType = document.querySelector('input[name="trackingType"]:checked').value;
 
     const habitData = {
         practitionerId: modalPractitionerId,
         name: document.getElementById('habitName').value,
         description: document.getElementById('habitDescription').value || null,
-        trackingType: 'BOOLEAN',
+        trackingType: trackingType,
+        numericUnit: trackingType === 'NUMERIC' ? (document.getElementById('habitUnit').value || null) : null,
         isPublic: visibility === 'PUBLIC',
         isPrivate: visibility === 'PRIVATE'
     };

@@ -1,5 +1,6 @@
 package com.ctoblue.plan91.adapter.in.web.dto;
 
+import com.ctoblue.plan91.domain.habit.TrackingType;
 import com.ctoblue.plan91.domain.routine.RecurrenceType;
 import com.ctoblue.plan91.domain.routine.RoutineStatus;
 
@@ -15,6 +16,8 @@ public record RoutineDto(
         String id,
         String habitId,
         String habitName,
+        TrackingType trackingType,
+        String numericUnit,
         String practitionerId,
         RecurrenceType recurrenceType,
         Set<String> specificDays,

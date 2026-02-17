@@ -86,6 +86,29 @@
   .badge-danger {
     @apply badge bg-danger-100 text-danger-800;
   }
+
+  /* Routine card buttons - row on mobile, column on desktop */
+  .routine-buttons {
+    display: flex;
+    flex-direction: row;
+    gap: 0.5rem;
+  }
+
+  @media (min-width: 640px) {
+    .routine-buttons {
+      flex-direction: column;
+    }
+  }
+
+  .routine-buttons > * {
+    flex: 1;
+  }
+
+  @media (min-width: 640px) {
+    .routine-buttons > * {
+      flex: none;
+    }
+  }
 }
 
 /* Custom utilities */

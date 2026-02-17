@@ -114,14 +114,14 @@ function createRoutineCard(routine, index) {
         '<span class="badge-success text-xs">Active</span>';
 
     return `
-        <div class="bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 p-6 border-l-4 ${borderColor}">
-            <div class="flex items-start justify-between gap-6">
+        <div class="bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 p-4 md:p-6 border-l-4 ${borderColor}">
+            <div class="flex flex-col md:flex-row md:items-start md:justify-between gap-4 md:gap-6">
                 <div class="flex-1">
                     <div class="flex items-center gap-3 mb-3">
-                        <h3 class="text-xl font-bold text-gray-900">${routine.habitName}</h3>
+                        <h3 class="text-lg md:text-xl font-bold text-gray-900">${routine.habitName}</h3>
                         ${badgeStatus}
                     </div>
-                    <p class="text-gray-600 mb-5">${formatRecurrence(routine.recurrenceType, routine.specificDays)}</p>
+                    <p class="text-gray-600 mb-4 md:mb-5 text-sm md:text-base">${formatRecurrence(routine.recurrenceType, routine.specificDays)}</p>
 
                     <!-- Progress Bar -->
                     <div class="mb-4">
@@ -147,7 +147,7 @@ function createRoutineCard(routine, index) {
                         </span>
                     </div>
                 </div>
-                <div class="flex flex-col gap-2">
+                <div class="routine-buttons">
                     ${completedToday ? `
                         <button disabled
                                 class="text-white text-base px-6 py-3 whitespace-nowrap rounded-lg shadow-md font-semibold opacity-90 cursor-not-allowed"
@@ -156,7 +156,7 @@ function createRoutineCard(routine, index) {
                             ✓ Done Today!
                         </button>
                     ` : `
-                        <button onclick="openCompleteEntryModal('${routine.id}', '${escapeHtml(routine.habitName)}', '${routine.habitId}', this)"
+                        <button onclick="openCompleteEntryModal('${routine.id}', '${escapeHtml(routine.habitName)}', '${routine.trackingType || 'BOOLEAN'}', '${escapeHtml(routine.numericUnit || '')}', this)"
                                 class="text-base px-6 py-3 whitespace-nowrap rounded-lg font-semibold transition-colors duration-200"
                                 style="background-color: #10b981; color: white;"
                                 onmouseover="this.style.backgroundColor='#059669'"
@@ -199,8 +199,8 @@ function escapeHtml(text) {
 // Store reference to the button being clicked
 let currentCompleteButton = null;
 
-// Modal functions (similar to habits/dashboard.html)
-function openCompleteEntryModal(routineId, habitName, habitId, buttonElement) {
+// Modal functions
+function openCompleteEntryModal(routineId, habitName, trackingType, numericUnit, buttonElement) {
     // Store button reference for later update
     currentCompleteButton = buttonElement;
 
@@ -213,8 +213,18 @@ function openCompleteEntryModal(routineId, habitName, habitId, buttonElement) {
 
     document.getElementById('selectedRoutineId').value = routineId;
     document.getElementById('modalHabitName').textContent = habitName;
-    document.getElementById('selectedTrackingType').value = 'BOOLEAN';
-    document.getElementById('numericValueInput').classList.add('hidden');
+    document.getElementById('selectedTrackingType').value = trackingType;
+
+    // Show/hide numeric input based on tracking type
+    const numericInput = document.getElementById('numericValueInput');
+    if (trackingType === 'NUMERIC') {
+        numericInput.classList.remove('hidden');
+        const label = document.getElementById('numericLabel');
+        label.textContent = numericUnit ? `How many ${numericUnit}?` : 'Value';
+        document.getElementById('entryValue').focus();
+    } else {
+        numericInput.classList.add('hidden');
+    }
 
     modal.classList.remove('hidden');
 }
@@ -251,57 +261,60 @@ function toggleNotesField() {
 
 function createCompleteEntryModal() {
     const modalHtml = `
-        <div id="completeEntryModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div class="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
+        <div id="completeEntryModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onclick="if(event.target === this) closeCompleteEntryModal()">
+            <div class="bg-white rounded-2xl shadow-xl max-w-sm w-full mx-4">
                 <div class="p-6">
-                    <h2 class="text-2xl font-bold text-gray-900 mb-4">Complete Entry</h2>
-                    <p class="text-gray-600 mb-6" id="modalHabitName"></p>
+                    <!-- Close button -->
+                    <button onclick="closeCompleteEntryModal()" class="absolute top-3 right-3 text-gray-400 hover:text-gray-600">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+
+                    <!-- Habit name as subtle header -->
+                    <p class="text-center text-gray-500 text-sm mb-4" id="modalHabitName"></p>
 
                     <form id="completeEntryForm">
                         <input type="hidden" id="selectedRoutineId">
                         <input type="hidden" id="selectedTrackingType">
 
-                        <div class="space-y-4">
-                            <div id="numericValueInput" class="hidden">
-                                <label for="entryValue" class="block text-sm font-medium text-gray-700 mb-2">
-                                    <span id="numericLabel">Value</span>
-                                </label>
-                                <input type="number" id="entryValue" name="value"
-                                       class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                            </div>
-
-                            <div id="notesToggleButton">
-                                <button type="button" onclick="toggleNotesField()"
-                                        class="text-blue-600 hover:text-blue-800 text-sm font-medium flex items-center gap-1">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-                                    </svg>
-                                    Want to add a note?
-                                </button>
-                            </div>
-
-                            <div id="notesContainer" class="hidden">
-                                <label for="entryNotes" class="block text-sm font-medium text-gray-700 mb-2">Notes (optional)</label>
-                                <textarea id="entryNotes" name="notes" rows="3"
-                                          class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                          placeholder="How did it go?"></textarea>
-                            </div>
+                        <!-- Numeric input (shown for NUMERIC habits) -->
+                        <div id="numericValueInput" class="hidden mb-4">
+                            <label for="entryValue" class="block text-sm font-medium text-gray-700 mb-2 text-center">
+                                <span id="numericLabel">Value</span>
+                            </label>
+                            <input type="number" id="entryValue" name="value"
+                                   class="w-full px-4 py-3 text-center text-2xl border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                                   placeholder="0">
                         </div>
 
-                        <div id="modalErrorMessage" class="hidden mt-4 p-4 bg-red-50 border border-red-200 rounded-md">
-                            <p class="text-red-800"></p>
+                        <!-- Big centered Mark Complete button -->
+                        <button type="submit" class="w-full py-4 text-white rounded-xl font-semibold text-lg mb-4"
+                                style="background-color: #10b981;"
+                                onmouseover="this.style.backgroundColor='#059669'"
+                                onmouseout="this.style.backgroundColor='#10b981'">
+                            ✓ Mark Complete
+                        </button>
+
+                        <!-- Notes toggle -->
+                        <div id="notesToggleButton" class="text-center">
+                            <button type="button" onclick="toggleNotesField()"
+                                    class="text-blue-600 hover:text-blue-800 text-sm font-medium inline-flex items-center gap-1">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                                </svg>
+                                Want to add a note?
+                            </button>
                         </div>
 
-                        <div class="mt-6 flex justify-end space-x-4">
-                            <button type="button" onclick="closeCompleteEntryModal()" class="px-6 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50">
-                                Cancel
-                            </button>
-                            <button type="submit" class="px-6 py-2 text-white rounded-md font-semibold"
-                                    style="background-color: #10b981;"
-                                    onmouseover="this.style.backgroundColor='#059669'"
-                                    onmouseout="this.style.backgroundColor='#10b981'">
-                                Mark Complete
-                            </button>
+                        <div id="notesContainer" class="hidden mt-4">
+                            <textarea id="entryNotes" name="notes" rows="2"
+                                      class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                                      placeholder="How did it go?"></textarea>
+                        </div>
+
+                        <div id="modalErrorMessage" class="hidden mt-4 p-3 bg-red-50 border border-red-200 rounded-lg text-center">
+                            <p class="text-red-800 text-sm"></p>
                         </div>
                     </form>
                 </div>
