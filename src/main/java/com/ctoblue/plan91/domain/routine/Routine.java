@@ -369,7 +369,7 @@ public class Routine {
         assert routine.getId() != null;
         assert routine.isActive();
         assert routine.getStartDate().equals(startDate);
-        assert routine.getExpectedEndDate().equals(startDate.plusDays(91));
+        assert routine.getExpectedEndDate().equals(startDate.plusDays(90));  // 91 days total (0-90)
         assert routine.getStreak().currentStreak() == 0;
         assert routine.getTotalDays() == 91;
         System.out.println("✓ Test 1: Start new routine: " + routine);
@@ -421,12 +421,13 @@ public class Routine {
 
         // Test 8: Complete 91 days
         Routine longRoutine = Routine.start(habitId, practitionerId, daily, startDate);
-        for (int i = 0; i < 92; i++) {
+        for (int i = 0; i < 91; i++) {
             longRoutine.recordCompletion(startDate.plusDays(i));
         }
-        assert longRoutine.isCompleted();
+        assert longRoutine.isCompleted() : "Should be completed after 91 completions";
         assert longRoutine.getCompletedAt() != null;
-        System.out.println("✓ Test 8: Completing 91+ days marks as COMPLETED");
+        assert longRoutine.getStreak().totalCompletions() == 91;
+        System.out.println("✓ Test 8: Completing 91 days marks as COMPLETED");
 
         // Test 9: Recurrence rule (weekdays only)
         RecurrenceRule weekdays = RecurrenceRule.weekdays();
@@ -502,9 +503,9 @@ public class Routine {
         // Test 18: 91-day validation
         try {
             new Routine(RoutineId.generate(), habitId, practitionerId, daily,
-                    startDate, startDate.plusDays(90), null, HabitStreak.initial(),
+                    startDate, startDate.plusDays(91), null, HabitStreak.initial(),
                     RoutineStatus.ACTIVE, Instant.now());
-            assert false : "Should enforce 91 days";
+            assert false : "Should enforce 90 days between start and end (91 days total)";
         } catch (IllegalArgumentException e) {
             System.out.println("✓ Test 18: 91-day validation works: " + e.getMessage());
         }
@@ -520,10 +521,10 @@ public class Routine {
         // Test 20: Equality based on ID
         Routine r20a = Routine.start(habitId, practitionerId, daily, startDate);
         Routine r20b = Routine.start(habitId, practitionerId, daily, startDate);
-        assert !r20a.equals(r20b);
+        assert !r20a.equals(r20b) : "Different IDs should not be equal";
         Routine r20c = new Routine(r20a.getId(), habitId, practitionerId, daily, startDate,
-                startDate.plusDays(91), null, HabitStreak.initial(), RoutineStatus.ACTIVE, Instant.now());
-        assert r20a.equals(r20c);
+                startDate.plusDays(90), null, HabitStreak.initial(), RoutineStatus.ACTIVE, Instant.now());
+        assert r20a.equals(r20c) : "Same ID should be equal";
         System.out.println("✓ Test 20: Equality based on ID works");
 
         System.out.println("\n✅ All Routine tests passed!");
