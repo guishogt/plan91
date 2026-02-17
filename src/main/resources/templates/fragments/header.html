@@ -6,8 +6,39 @@
 <body>
 
 <!-- Header Fragment -->
-<header th:fragment="header" class="bg-gradient-to-r from-primary-600 to-primary-700 text-white shadow-lg">
-    <div class="max-w-7xl mx-auto px-4">
+<header th:fragment="header" class="text-white" style="position: relative; overflow: visible; background: transparent; margin-bottom: 25px;">
+    <!-- Brush stroke background - multiple overlapping strokes -->
+    <svg style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none;" preserveAspectRatio="none" viewBox="0 0 1200 64">
+        <!-- Base fill -->
+        <rect x="0" y="0" width="1200" height="64" fill="#1e40af"/>
+        <!-- Brush texture strokes on top -->
+        <path d="M0,10 Q150,25 300,8 Q450,0 600,15 Q750,30 900,12 Q1050,0 1200,18"
+              fill="none" stroke="#1e3a8a" stroke-width="20" stroke-linecap="round"/>
+        <path d="M0,30 Q200,45 400,28 Q600,10 800,35 Q1000,55 1200,30"
+              fill="none" stroke="#2563eb" stroke-width="25" stroke-linecap="round" opacity="0.7"/>
+        <path d="M0,50 Q100,42 250,55 Q400,68 550,48 Q700,28 850,52 Q1000,76 1200,45"
+              fill="none" stroke="#3b82f6" stroke-width="18" stroke-linecap="round" opacity="0.6"/>
+        <!-- Light highlights -->
+        <path d="M100,20 Q300,10 500,25 Q700,40 900,18 Q1100,5 1200,22"
+              fill="none" stroke="#60a5fa" stroke-width="8" stroke-linecap="round" opacity="0.4"/>
+    </svg>
+
+    <!-- Bottom brush stroke edge - extends below header -->
+    <svg style="position: absolute; bottom: -20px; left: 0; width: 100%; height: 40px; pointer-events: none; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.15));" preserveAspectRatio="none" viewBox="0 0 1200 40">
+        <!-- Irregular bottom edge made of brush strokes -->
+        <path d="M0,0 Q50,8 100,2 Q180,12 260,0 Q340,15 420,5 Q500,18 600,2 Q700,20 800,8 Q900,25 1000,5 Q1100,18 1200,10 L1200,0 L0,0 Z"
+              fill="#1e40af"/>
+        <path d="M0,5 Q80,18 160,8 Q240,22 340,6 Q440,20 540,10 Q640,25 740,8 Q840,22 940,12 Q1040,28 1140,10 Q1200,18 1200,5"
+              fill="none" stroke="#2563eb" stroke-width="12" stroke-linecap="round"/>
+        <path d="M50,2 Q150,15 250,5 Q350,18 450,8 Q550,22 650,6 Q750,20 850,10 Q950,24 1050,8 Q1150,18 1200,12"
+              fill="none" stroke="#3b82f6" stroke-width="8" stroke-linecap="round" opacity="0.8"/>
+        <path d="M0,8 Q120,20 240,10 Q360,24 480,12 Q600,26 720,14 Q840,28 960,16 Q1080,30 1200,18"
+              fill="none" stroke="#1e3a8a" stroke-width="6" stroke-linecap="round" opacity="0.6"/>
+    </svg>
+
+    <!-- Content layer -->
+    <div style="position: relative; z-index: 10;" x-data="{ mobileMenuOpen: false }">
+        <div class="max-w-7xl mx-auto px-4">
         <div class="flex items-center justify-between h-16">
 
             <!-- Logo and Brand -->
@@ -19,8 +50,8 @@
                     </div>
                     <!-- Brand Name -->
                     <div>
-                        <div class="text-2xl font-bold">Plan 91</div>
-                        <div class="text-primary-200 text-xs hidden md:block -mt-1">Build Habits That Last</div>
+                        <div class="text-2xl font-bold" style="text-shadow: 1px 1px 2px rgba(0,0,0,0.3);">Plan 91</div>
+                        <div class="text-xs hidden md:block -mt-1" style="color: #bfdbfe; text-shadow: 1px 1px 2px rgba(0,0,0,0.3);">Build Habits That Last</div>
                     </div>
                 </a>
             </div>
@@ -28,15 +59,17 @@
             <!-- Desktop Navigation -->
             <nav class="hidden md:flex items-center space-x-8" id="desktop-nav">
                 <a href="/dashboard" class="text-white hover:text-primary-100 font-medium transition-colors">Dashboard</a>
-                <a href="/habits/browse" class="text-primary-200 hover:text-white font-medium transition-colors">Explore</a>
-                <a href="/habits/stats" class="text-primary-200 hover:text-white font-medium transition-colors">Analytics</a>
+                <a href="/habits/stats" class="text-white hover:text-primary-100 font-medium transition-colors">Analytics</a>
+                <a href="/habits/browse" class="text-white hover:text-primary-100 font-medium transition-colors">Explore</a>
 
                 <!-- User Menu -->
                 <div class="relative" x-data="{ open: false }">
                     <button @click="open = !open"
                             class="flex items-center space-x-2 text-white hover:text-primary-100 font-medium transition-colors">
                         <div class="w-8 h-8 bg-white rounded-full flex items-center justify-center">
-                            <span class="text-primary-600 font-bold text-sm">JD</span>
+                            <svg class="w-5 h-5 text-primary-600" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                            </svg>
                         </div>
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
@@ -85,8 +118,7 @@
                     class="md:hidden inline-flex items-center justify-center p-2 rounded-md text-white hover:bg-primary-500 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white"
                     aria-expanded="false"
                     aria-label="Toggle navigation menu"
-                    @click="mobileMenuOpen = !mobileMenuOpen"
-                    x-data="{ mobileMenuOpen: false }">
+                    @click="mobileMenuOpen = !mobileMenuOpen">
                 <!-- Hamburger Icon -->
                 <svg class="h-6 w-6"
                      :class="{'hidden': mobileMenuOpen, 'block': !mobileMenuOpen}"
@@ -115,21 +147,20 @@
         <!-- Mobile Navigation -->
         <div class="md:hidden"
              id="mobile-nav"
-             x-data="{ open: false }"
-             x-show="open"
+             x-show="mobileMenuOpen"
              x-transition:enter="transition ease-out duration-200"
              x-transition:enter-start="opacity-0 -translate-y-1"
              x-transition:enter-end="opacity-100 translate-y-0"
              x-transition:leave="transition ease-in duration-150"
              x-transition:leave-start="opacity-100 translate-y-0"
-             x-transition:leave-end="opacity-0 -translate-y-1"
-             style="display: none;">
+             x-transition:leave-end="opacity-0 -translate-y-1">
             <div class="px-2 pt-2 pb-4 space-y-1">
                 <a href="/dashboard" class="block px-3 py-2 rounded-md text-white hover:bg-primary-500 font-medium transition-colors">Dashboard</a>
-                <a href="/habits/browse" class="block px-3 py-2 rounded-md text-primary-100 hover:bg-primary-500 hover:text-white font-medium transition-colors">Explore</a>
-                <a href="/habits/stats" class="block px-3 py-2 rounded-md text-primary-100 hover:bg-primary-500 hover:text-white font-medium transition-colors">Analytics</a>
+                <a href="/habits/stats" class="block px-3 py-2 rounded-md text-white hover:bg-primary-500 font-medium transition-colors">Analytics</a>
+                <a href="/habits/browse" class="block px-3 py-2 rounded-md text-white hover:bg-primary-500 font-medium transition-colors">Explore</a>
                 <a href="/profile" class="block px-3 py-2 rounded-md text-primary-100 hover:bg-primary-500 hover:text-white font-medium transition-colors">Profile</a>
             </div>
+        </div>
         </div>
     </div>
 </header>
