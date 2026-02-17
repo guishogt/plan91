@@ -217,7 +217,7 @@ For numeric habits:
 
 #### Backend
 - **Language:** Java 21 (LTS)
-- **Framework:** Spring Boot 3.2+
+- **Framework:** Spring Boot 4
 - **Architecture:** Domain-Driven Design (DDD) with Hexagonal Architecture
 - **Security:** Spring Security + Auth0
 - **Database:** MySQL 8.0
@@ -245,23 +245,16 @@ For numeric habits:
 #### Minimalist UI
 - Clean typography (Inter or SF Pro Display)
 - Generous whitespace
-- Limited color palette (primary + grayscale + semantic colors)
+- Elegant look and feel, based on a blue pallete (#1C2B2D
+  #1F6F8B
+  #99A8B2
+  #E6D5B8)
 - No unnecessary embellishments
+- Rounded corners
 - Touch-friendly targets (minimum 44x44px)
 
-#### Performance
-- Page load < 2 seconds
-- Interaction feedback < 100ms
-- Optimized database queries
-- Lazy loading for analytics data
-- Efficient HTMX partial updates
 
-#### Accessibility
-- WCAG 2.1 AA compliance
-- Keyboard navigation
-- Screen reader support
-- Proper ARIA labels
-- Sufficient color contrast
+
 
 #### Mobile-First
 - Responsive design (mobile, tablet, desktop)
@@ -321,7 +314,10 @@ public class User {
     private ZoneId timezone;        // Critical for date calculations
     private Timestamp createdAt;
     private Timestamp updatedAt;
+    privaate Password pwd; //or something similar? Must be secure
 }
+
+//An user can have friends. 
 ```
 
 **Value Objects:**
@@ -549,6 +545,7 @@ public class HabitCompleted91Days implements DomainEvent { ... }
 
 ### Project Structure
 
+Tis is a sample
 ```
 plan91/
 ├── src/
@@ -712,7 +709,7 @@ plan91/
 ---
 
 ## Database Schema
-
+This is a sample. 
 ```sql
 -- ============================================================
 -- Users (Auth0 managed, light reference table)
@@ -1007,20 +1004,20 @@ Response: 200 OK
 #### Color Palette
 ```css
 /* Primary */
---primary-50: #f0f9ff;
---primary-500: #3b82f6;   /* Main brand color */
---primary-700: #1d4ed8;
+--primary-50: #TBD;
+--primary-500: #TBD;   /* Main brand color */
+--primary-700: #TBD;
 
-/* Grayscale */
---gray-50: #f9fafb;
---gray-100: #f3f4f6;
+/*  */
+--gray-50: #TBD;
+--gray-100: #TBD;
 --gray-500: #6b7280;
---gray-900: #111827;
+--gray-900: #TBD;
 
 /* Semantic */
---success: #10b981;       /* Green for completion */
---warning: #f59e0b;       /* Amber for strike warning */
---error: #ef4444;         /* Red for broken streak */
+--success: #TBTBDD;       /* Green for completion */
+--warning: #TBD;       /* Amber for strike warning */
+--error: #TBD;         /* Red for broken streak */
 ```
 
 #### Typography
@@ -1296,317 +1293,324 @@ plan91/
 
 ## Epic Breakdown
 
-### Epic 01: Domain Modeling & Architecture
-**Duration:** 2-3 days  
-**Goal:** Define core domain model and architectural patterns
+> **RESTRUCTURED** (2026-01-29): Epics reordered to prioritize testability, enable earlier frontend development, and support isolated model testing. See `docs/DECISIONS.md` ADR-001 for rationale.
 
-**Tickets:**
-1. Define bounded contexts and context map
-2. Model Habit aggregate with invariants
-3. Model User and Category aggregates
-4. Define StreakCalculationService
-5. Define RecurrenceEvaluationService
-6. Document domain events
-7. Create value objects (HabitId, UserId, Email, etc.)
+**All tickets use sequential numbering**: PLAN91-001, PLAN91-002, PLAN91-003, etc. (not restarting per epic)
 
-**Deliverable:** Complete domain model in Java interfaces/classes
+**Development Flow**:
+```
+Epic 0 (Setup) → Epic 1 (Model) → Epic 2 (Frontend) → Epic 3 (Auth) →
+Epic 4 (Infrastructure) → Epics 5-9 (Features) → Epic 10 (Polish) → Epic 11 (Deploy)
+```
 
 ---
 
-### Epic 02: Infrastructure Setup
-**Duration:** 1-2 days  
-**Goal:** Scaffold project with all infrastructure
+### Epic 00: Setup & Documentation ✅
+**Duration:** 2-3 days
+**Priority:** Critical
+**Goal:** Establish project foundation with documentation, diagrams, and structure
+
+**Rationale** (ADR-003): Documentation-first approach ensures agents have clear context.
 
 **Tickets:**
-1. Spring Boot project initialization
-2. Docker Compose setup (app + MySQL)
-3. Database schema design (Flyway migrations)
-4. Project structure per hexagonal architecture
-5. Logging and error handling foundation
-6. Application properties configuration
+- PLAN91-001: Create project documentation structure ✅
+- PLAN91-002: Add UML use case diagrams to docs ✅
+- PLAN91-003: Initialize Git repository with .gitignore
+- PLAN91-004: Create Maven project structure
+- PLAN91-005: Set up hexagonal architecture package structure
+- PLAN91-006: Create README.md with project overview
+- PLAN91-007: Set up basic logging configuration
 
-**Deliverable:** Runnable Spring Boot app with database
+**Deliverable:** Complete documentation (DOMAIN-MODEL.md, USE-CASES.md, DECISIONS.md), project skeleton, Git repo
+
+**Dependencies:** None (foundation epic)
 
 ---
 
-### Epic 03: Authentication & User Management
-**Duration:** 2-3 days  
-**Goal:** Auth0 integration and user registration
+### Epic 01: Domain Model with Standalone Testing
+**Duration:** 3-4 days
+**Priority:** Critical
+**Goal:** Create domain model classes with `main()` method testing (no database yet)
+
+**Rationale** (ADR-001, ADR-004): Test business logic in isolation before infrastructure complexity.
 
 **Tickets:**
-1. Auth0 tenant setup and configuration
-2. Spring Security + Auth0 integration
-3. JWT token handling and validation
-4. User registration endpoint
-5. User repository and persistence
-6. Current user resolution from JWT
-7. Timezone handling utilities
+- PLAN91-008: Create Value Objects (UserId, Email, HabitId, CategoryId)
+- PLAN91-009: Create RecurrenceRule value object with main() tests
+- PLAN91-010: Create NumericConfig value object
+- PLAN91-011: Create HabitStreak value object with main() tests
+- PLAN91-012: Create User aggregate with main() tests
+- PLAN91-013: Create Category aggregate with main() tests
+- PLAN91-014: Create Habit aggregate (core) with main() tests
+- PLAN91-015: Create HabitEntry entity with validation tests
+- PLAN91-016: Implement RecurrenceEvaluationService with main() tests
+- PLAN91-017: Implement StreakCalculationService with main() tests
+- PLAN91-018: Test all domain business rules in standalone mode
+- PLAN91-019: Document domain model with additional Mermaid diagrams
 
-**Deliverable:** Working authentication with protected endpoints
+**Deliverable:** All domain classes working standalone (no Spring, no database), testable via `java ClassName.java`
+
+**Dependencies:** Epic 00
+
+**Key Feature:** Each class has `public static void main()` with sample data and assertions
 
 ---
 
-### Epic 04: Category Management
-**Duration:** 1 day  
-**Goal:** User-defined categories
+### Epic 02: Frontend Foundation (MOVED UP)
+**Duration:** 2-3 days
+**Priority:** High
+**Goal:** Set up HTMX + Tailwind + base layouts for early UI testing
+
+**Rationale** (ADR-001): Frontend available early enables visual testing and iteration.
 
 **Tickets:**
-1. Category aggregate and repository
-2. Create category use case
-3. List categories use case
-4. Update category use case
-5. Delete category use case
-6. Category REST endpoints
-7. Category validation rules
+- PLAN91-020: Configure Tailwind CSS with Plan 91 theme
+- PLAN91-021: Integrate HTMX
+- PLAN91-022: Create base Thymeleaf layout template
+- PLAN91-023: Create navigation component
+- PLAN91-024: Create form components and utilities
+- PLAN91-025: Create loading states and skeleton loaders
+- PLAN91-026: Create toast/notification component
+- PLAN91-027: Create modal component
+- PLAN91-028: Create sample static dashboard page (mockup)
 
-**Deliverable:** Full CRUD for categories via API
+**Deliverable:** Reusable frontend components, sample pages to visualize design
+
+**Dependencies:** Epic 00
+
+**Note:** Static pages initially, will connect to backend in later epics
 
 ---
 
-### Epic 05: Habit Core Domain
-**Duration:** 3-4 days  
-**Goal:** Core habit business logic
+### Epic 03: Authentication (MOVED UP)
+**Duration:** 2-3 days
+**Priority:** Critical
+**Goal:** Auth0 integration, user registration, and authentication UI
+
+**Rationale** (ADR-001): Authentication needed before building user-specific features.
 
 **Tickets:**
-1. Habit aggregate implementation
-2. Habit repository (JPA)
-3. Recurrence rule evaluation service
-4. Streak calculation service
-5. Create habit use case
-6. Complete habit entry use case
-7. Edit habit use case
-8. Delete habit use case
-9. Query habit details use case
+- PLAN91-029: Auth0 tenant setup and configuration
+- PLAN91-030: Spring Security + Auth0 integration
+- PLAN91-031: JWT token handling and validation
+- PLAN91-032: User registration endpoint
+- PLAN91-033: Login page UI
+- PLAN91-034: Registration page UI
+- PLAN91-035: Password reset flow
+- PLAN91-036: Profile/settings page UI
+- PLAN91-037: Logout functionality
+- PLAN91-038: Protected route handling
+- PLAN91-039: Current user resolution from JWT
+- PLAN91-040: Timezone handling utilities
 
-**Deliverable:** All habit business logic working with tests
+**Deliverable:** Working authentication system (UI + backend), protected endpoints
+
+**Dependencies:** Epic 00, Epic 02 (for UI components)
 
 ---
 
-### Epic 06: Habit REST API
-**Duration:** 2 days  
-**Goal:** Expose habit functionality via REST
+### Epic 04: Infrastructure & Persistence
+**Duration:** 2-3 days
+**Priority:** High
+**Goal:** Spring Boot, JPA, MySQL, Flyway - connect domain to database
 
 **Tickets:**
-1. Habit controller with create endpoint
-2. Complete habit endpoint
-3. Add entry with note/numeric value endpoint
-4. List user's habits endpoint
-5. Get habit details endpoint
-6. Update habit endpoint
-7. Delete habit endpoint
-8. Get habit entries (history) endpoint
-9. DTOs and mappers
-10. API error handling
+- PLAN91-041: Spring Boot project configuration
+- PLAN91-042: MySQL database setup with Docker Compose
+- PLAN91-043: Flyway migration for users table
+- PLAN91-044: Flyway migration for categories table
+- PLAN91-045: Flyway migration for habits table
+- PLAN91-046: Flyway migration for habit_entries table
+- PLAN91-047: Flyway migration for milestones table
+- PLAN91-048: Create JPA entities (UserEntity, CategoryEntity, etc.)
+- PLAN91-049: Create MapStruct mappers (domain ↔ entity)
+- PLAN91-050: Implement JPA repositories
+- PLAN91-051: Convert domain main() tests to JUnit + Testcontainers
+- PLAN91-052: Application properties configuration
+- PLAN91-053: Logging and error handling setup
 
-**Deliverable:** Full REST API for habits
+**Deliverable:** Spring Boot app connected to MySQL, domain objects persisted
+
+**Dependencies:** Epic 01 (domain model), Epic 03 (auth setup)
+
+**Note:** Remove `main()` methods from domain classes, replace with proper JUnit tests
 
 ---
 
-### Epic 07: Analytics & Stats Backend
-**Duration:** 2-3 days  
-**Goal:** Calculate and serve analytics data
+### Epic 05: Habit Management (Backend + UI)
+**Duration:** 4-5 days
+**Priority:** Critical
+**Goal:** Complete habit CRUD functionality (backend + frontend)
 
 **Tickets:**
-1. Habit statistics calculation service
-2. Category-based analytics aggregation
-3. Chart data formatting (for Chart.js)
-4. Calendar heatmap data generation
-5. Analytics REST endpoints
-6. Dashboard summary endpoint
+- PLAN91-054: Create habit use case
+- PLAN91-055: Edit habit use case
+- PLAN91-056: Delete habit use case
+- PLAN91-057: Complete habit entry use case
+- PLAN91-058: Query habit details use case
+- PLAN91-059: Habit REST API endpoints
+- PLAN91-060: DTOs and request/response mappers
+- PLAN91-061: API error handling
+- PLAN91-062: Create habit form UI (multi-step)
+- PLAN91-063: Recurrence rule UI component
+- PLAN91-064: Numeric tracking configuration UI
+- PLAN91-065: Edit habit form UI
+- PLAN91-066: Delete habit confirmation UI
+- PLAN91-067: Habit detail view page
 
-**Deliverable:** Analytics API ready for frontend
+**Deliverable:** Full habit management (create, edit, delete, view) with UI and API
+
+**Dependencies:** Epic 04
 
 ---
 
-### Epic 08: Milestone System
-**Duration:** 1-2 days  
-**Goal:** 91-day milestone tracking
+### Epic 06: Dashboard (Today View)
+**Duration:** 3 days
+**Priority:** Critical
+**Goal:** Main user interface for daily habit tracking
 
 **Tickets:**
-1. Milestone domain model
-2. Milestone repository
-3. Milestone achievement detection service
-4. Weekly milestone triggers
-5. Monthly milestone triggers
-6. Day 91 completion milestone
-7. Milestone REST endpoints
+- PLAN91-068: Dashboard backend - today's habits endpoint
+- PLAN91-069: Dashboard layout and structure
+- PLAN91-070: Habit card component
+- PLAN91-071: Complete button interaction (HTMX)
+- PLAN91-072: Add note modal
+- PLAN91-073: Add numeric value input
+- PLAN91-074: Strike warning banner
+- PLAN91-075: Streak display component
+- PLAN91-076: Progress bar (X/91 days)
+- PLAN91-077: Category filtering
+- PLAN91-078: Empty states
 
-**Deliverable:** Milestone system with API
+**Deliverable:** Fully functional dashboard for daily tracking
+
+**Dependencies:** Epic 05
 
 ---
 
-### Epic 09: Frontend Foundation
-**Duration:** 2 days  
-**Goal:** Set up HTMX + Tailwind + base layouts
+### Epic 07: Categories (Backend + UI)
+**Duration:** 1-2 days
+**Priority:** Medium
+**Goal:** User-defined category management
 
 **Tickets:**
-1. Tailwind CSS configuration
-2. HTMX integration and configuration
-3. Base HTML template (layout)
-4. Navigation component
-5. Form utilities
-6. Loading states and skeletons
-7. Toast/notification component
-8. Modal component
+- PLAN91-079: Category use cases (create, update, delete, list)
+- PLAN91-080: Category REST API endpoints
+- PLAN91-081: Category validation rules
+- PLAN91-082: Category list view UI
+- PLAN91-083: Create category modal
+- PLAN91-084: Edit category modal
+- PLAN91-085: Delete category confirmation
+- PLAN91-086: Color picker component
+- PLAN91-087: Emoji/icon selector
 
-**Deliverable:** Reusable frontend components
+**Deliverable:** Full category CRUD (backend + UI)
+
+**Dependencies:** Epic 04, Epic 05
 
 ---
 
-### Epic 10: Authentication UI
-**Duration:** 1-2 days  
-**Goal:** Login, registration, profile pages
+### Epic 08: Analytics & Statistics
+**Duration:** 3-4 days
+**Priority:** Medium
+**Goal:** Habit statistics, charts, and insights
 
 **Tickets:**
-1. Login page
-2. Registration page
-3. Password reset flow
-4. Profile/settings page
-5. Logout functionality
-6. Protected route handling
+- PLAN91-088: Habit statistics calculation service
+- PLAN91-089: Category-based analytics aggregation
+- PLAN91-090: Chart data formatting (for Chart.js)
+- PLAN91-091: Calendar heatmap data generation
+- PLAN91-092: Analytics REST endpoints
+- PLAN91-093: Dashboard summary endpoint
+- PLAN91-094: Stats dashboard layout UI
+- PLAN91-095: Habit selector dropdown
+- PLAN91-096: Key metrics cards
+- PLAN91-097: Chart.js integration
+- PLAN91-098: Line chart for numeric habits
+- PLAN91-099: Calendar heatmap component
+- PLAN91-100: Category breakdown visualization
+- PLAN91-101: Date range selector
+- PLAN91-102: Export data feature (optional)
 
-**Deliverable:** Complete auth user flow
+**Deliverable:** Complete analytics dashboard with charts and statistics
+
+**Dependencies:** Epic 05, Epic 07
 
 ---
 
-### Epic 11: Category Management UI
-**Duration:** 1 day  
-**Goal:** UI for managing categories
+### Epic 09: Milestones & Achievements
+**Duration:** 2 days
+**Priority:** Medium
+**Goal:** 91-day milestone tracking and celebration
 
 **Tickets:**
-1. Category list view
-2. Create category modal
-3. Edit category modal
-4. Delete category confirmation
-5. Color picker component
-6. Emoji/icon selector
+- PLAN91-103: Milestone domain model
+- PLAN91-104: Milestone repository
+- PLAN91-105: Milestone achievement detection service
+- PLAN91-106: Weekly milestone triggers (7, 14, 21...)
+- PLAN91-107: Monthly milestone triggers (30, 60)
+- PLAN91-108: Day 91 completion milestone
+- PLAN91-109: Milestone REST endpoints
+- PLAN91-110: Milestone notification system UI
+- PLAN91-111: Achievement modal/card
+- PLAN91-112: Milestone history view
+- PLAN91-113: 91-day completion flow UI
+- PLAN91-114: Continue vs. restart decision UI
+- PLAN91-115: Shareable achievement card (optional)
 
-**Deliverable:** Full category CRUD UI
+**Deliverable:** Milestone system with celebration UI
+
+**Dependencies:** Epic 05
 
 ---
 
-### Epic 12: Habit Management UI
-**Duration:** 2-3 days  
-**Goal:** Create, edit, delete habits
+### Epic 10: PWA & Polish
+**Duration:** 3 days
+**Priority:** Medium
+**Goal:** Make app installable, accessible, and polished
 
 **Tickets:**
-1. Create habit form (multi-step)
-2. Recurrence rule UI
-3. Numeric tracking configuration UI
-4. Category assignment in form
-5. Edit habit form
-6. Delete habit confirmation
-7. Habit detail view page
+- PLAN91-116: PWA manifest.json configuration
+- PLAN91-117: Service worker implementation
+- PLAN91-118: Offline page/fallback
+- PLAN91-119: Install prompt UI
+- PLAN91-120: Caching strategy for assets
+- PLAN91-121: Background sync for completion
+- PLAN91-122: App icon assets (all sizes)
+- PLAN91-123: Loading states across all interactions
+- PLAN91-124: Error handling and user feedback
+- PLAN91-125: Responsive design (mobile, tablet, desktop)
+- PLAN91-126: Accessibility (ARIA labels, keyboard nav)
+- PLAN91-127: Performance optimization
+- PLAN91-128: Animation and transitions
+- PLAN91-129: Dark mode (optional)
 
-**Deliverable:** Full habit management UI
+**Deliverable:** Polished, installable PWA
+
+**Dependencies:** All feature epics (05-09)
 
 ---
 
-### Epic 13: Dashboard (Today View)
-**Duration:** 3 days  
-**Goal:** Main user interface for daily tracking
-
-**Tickets:**
-1. Dashboard layout and structure
-2. Habit card component
-3. Complete button interaction (HTMX)
-4. Add note modal
-5. Add numeric value input
-6. Strike warning banner
-7. Streak display
-8. Progress bar (X/91 days)
-9. Category filtering
-10. Empty states
-
-**Deliverable:** Fully functional dashboard
-
----
-
-### Epic 14: Analytics & Stats UI
-**Duration:** 2-3 days  
-**Goal:** Visualize habit progress
-
-**Tickets:**
-1. Stats dashboard layout
-2. Habit selector dropdown
-3. Key metrics cards
-4. Chart.js integration
-5. Line chart for numeric habits
-6. Calendar heatmap component
-7. Category breakdown visualization
-8. Date range selector
-9. Export data feature (bonus)
-
-**Deliverable:** Complete analytics dashboard
-
----
-
-### Epic 15: Milestone & Kudos UI
-**Duration:** 1-2 days  
-**Goal:** Celebrate achievements
-
-**Tickets:**
-1. Milestone notification system
-2. Achievement modal/card
-3. Milestone history view
-4. 91-day completion flow
-5. Continue vs. restart decision UI
-6. Shareable achievement card (optional)
-
-**Deliverable:** Engaging milestone experience
-
----
-
-### Epic 16: PWA Features
-**Duration:** 2 days  
-**Goal:** Make it installable and work offline
-
-**Tickets:**
-1. manifest.json configuration
-2. Service worker implementation
-3. Offline page/fallback
-4. Install prompt UI
-5. Caching strategy for assets
-6. Background sync for completion
-7. App icon assets (all sizes)
-
-**Deliverable:** Fully functional PWA
-
----
-
-### Epic 17: Polish & UX Refinement
-**Duration:** 2-3 days  
-**Goal:** Improve user experience
-
-**Tickets:**
-1. Loading states across all interactions
-2. Error handling and user feedback
-3. Responsive design (mobile, tablet, desktop)
-4. Accessibility (ARIA labels, keyboard nav)
-5. Performance optimization
-6. Animation and transitions
-7. Dark mode (optional)
-
-**Deliverable:** Polished user experience
-
----
-
-### Epic 18: Deployment & DevOps
-**Duration:** 2 days  
+### Epic 11: Deployment & DevOps
+**Duration:** 2 days
+**Priority:** High
 **Goal:** Deploy to Railway with CI/CD
 
 **Tickets:**
-1. Production Docker configuration
-2. Railway project setup
-3. MySQL on Railway
-4. Environment variables management
-5. Auth0 production configuration
-6. GitHub Actions CI/CD pipeline
-7. Database backup strategy
-8. Monitoring and logging
-9. Domain and SSL setup
+- PLAN91-130: Production Docker configuration
+- PLAN91-131: Railway project setup
+- PLAN91-132: MySQL on Railway
+- PLAN91-133: Environment variables management
+- PLAN91-134: Auth0 production configuration
+- PLAN91-135: GitHub Actions CI/CD pipeline
+- PLAN91-136: Database backup strategy
+- PLAN91-137: Monitoring and logging
+- PLAN91-138: Domain and SSL setup
+- PLAN91-139: Production smoke tests
 
-**Deliverable:** Live production application
+**Deliverable:** Live production application on Railway
+
+**Dependencies:** All epics complete
 
 ---
 
