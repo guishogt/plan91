@@ -6,11 +6,11 @@ This file tells agents what to work on and provides necessary context.
 **Epic 00: Setup & Documentation**
 
 ## Current Ticket
-**PLAN91-005** - Set up Hexagonal Architecture Package Structure
-(Path: `/epics/00-setup/tickets/PLAN91-005.md`)
+**PLAN91-006** - Update README.md (mostly complete)
+(Path: `/epics/00-setup/tickets/PLAN91-006.md`)
 
-**Status**: Ready to start
-**What to do**: Create domain, application, infrastructure, and interfaces package structure
+**Status**: Mostly done, may need minor updates
+**What to do**: Verify README is up to date with current project state
 
 ## Instructions for AI Agents
 
@@ -37,6 +37,7 @@ When starting work:
 - ✅ PLAN91-002: Add UML use case diagrams to docs (2026-01-29)
 - ✅ PLAN91-003: Initialize Git repository with .gitignore (2026-01-29)
 - ✅ PLAN91-004: Create Maven project structure (2026-01-29)
+- ✅ PLAN91-005: Set up hexagonal architecture packages (2026-01-29)
 
 ## Notes
 - All ticket numbers are sequential (001, 002, 003...) across all epics
