@@ -1,0 +1,52 @@
+# Plan 91 Application Configuration
+# Main configuration file (loaded for all profiles)
+
+spring:
+  application:
+    name: plan91
+
+  # Active profile (dev, test, prod)
+  profiles:
+    active: dev
+
+  # JPA/Hibernate Configuration
+  jpa:
+    open-in-view: false
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+        use_sql_comments: true
+
+  # Flyway Configuration (disabled by default, enabled per profile)
+  flyway:
+    enabled: false
+
+  # Security (will be configured in Epic 03)
+  security:
+    user:
+      name: admin
+      password: admin
+
+# Server Configuration
+server:
+  port: 8080
+  error:
+    include-message: always
+    include-binding-errors: always
+    include-stacktrace: on_param
+    include-exception: false
+
+# Logging
+logging:
+  level:
+    root: INFO
+    com.ctoblue.plan91: DEBUG
+    org.springframework.web: INFO
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+
+# Application-specific properties
+plan91:
+  version: 0.1.0-SNAPSHOT
+  environment: ${spring.profiles.active}

@@ -6,11 +6,11 @@ This file tells agents what to work on and provides necessary context.
 **Epic 00: Setup & Documentation**
 
 ## Current Ticket
-**PLAN91-004** - Create Maven Project Structure
-(Path: `/epics/00-setup/tickets/PLAN91-004.md`)
+**PLAN91-005** - Set up Hexagonal Architecture Package Structure
+(Path: `/epics/00-setup/tickets/PLAN91-005.md`)
 
 **Status**: Ready to start
-**What to do**: Initialize Maven project with Spring Boot, create basic pom.xml with dependencies
+**What to do**: Create domain, application, infrastructure, and interfaces package structure
 
 ## Instructions for AI Agents
 
@@ -35,6 +35,7 @@ When starting work:
 - ✅ PLAN91-001: Create project documentation structure (2026-01-29)
 - ✅ PLAN91-002: Add UML use case diagrams to docs (2026-01-29)
 - ✅ PLAN91-003: Initialize Git repository with .gitignore (2026-01-29)
+- ✅ PLAN91-004: Create Maven project structure (2026-01-29)
 
 ## Notes
 - All ticket numbers are sequential (001, 002, 003...) across all epics

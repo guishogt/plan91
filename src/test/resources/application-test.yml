@@ -1,0 +1,21 @@
+# Test Profile Configuration (test resources)
+
+spring:
+  # Use Testcontainers for integration tests
+  datasource:
+    url: jdbc:tc:mysql:8.0:///plan91_test
+    driver-class-name: org.testcontainers.jdbc.ContainerDatabaseDriver
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+
+  flyway:
+    enabled: true
+    clean-on-validation-error: true
+
+logging:
+  level:
+    root: WARN
+    com.ctoblue.plan91: INFO

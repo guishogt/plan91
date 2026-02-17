@@ -1,0 +1,36 @@
+# Test Profile Configuration (for unit and integration tests)
+
+spring:
+  # DataSource (will be overridden by Testcontainers)
+  datasource:
+    url: jdbc:tc:mysql:8.0:///plan91_test
+    driver-class-name: org.testcontainers.jdbc.ContainerDatabaseDriver
+
+  # JPA/Hibernate
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
+
+  # Flyway
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    clean-on-validation-error: true
+
+  # Security (disabled for most tests)
+  security:
+    user:
+      name: test
+      password: test
+
+# Logging (less verbose for tests)
+logging:
+  level:
+    root: WARN
+    com.ctoblue.plan91: INFO
+    org.springframework: WARN
+    org.hibernate: WARN
