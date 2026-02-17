@@ -1,0 +1,57 @@
+name: Daily Database Backup
+
+on:
+  schedule:
+    # Run every day at 4:00 AM UTC (10:00 PM Guatemala time)
+    - cron: '0 4 * * *'
+  workflow_dispatch:  # Allow manual trigger
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install MySQL client
+        run: sudo apt-get update && sudo apt-get install -y mysql-client
+
+      - name: Create backup
+        env:
+          MYSQL_HOST: ${{ secrets.MYSQL_HOST }}
+          MYSQL_PORT: ${{ secrets.MYSQL_PORT }}
+          MYSQL_USER: ${{ secrets.MYSQL_USER }}
+          MYSQL_PASSWORD: ${{ secrets.MYSQL_PASSWORD }}
+          MYSQL_DATABASE: ${{ secrets.MYSQL_DATABASE }}
+        run: |
+          mkdir -p backups
+          TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
+          BACKUP_FILE="backups/plan91_backup_${TIMESTAMP}.sql"
+
+          echo "Creating backup..."
+          mysqldump \
+            --host="$MYSQL_HOST" \
+            --port="$MYSQL_PORT" \
+            --user="$MYSQL_USER" \
+            --password="$MYSQL_PASSWORD" \
+            --single-transaction \
+            --routines \
+            --triggers \
+            "$MYSQL_DATABASE" > "$BACKUP_FILE"
+
+          gzip "$BACKUP_FILE"
+          echo "Backup created: ${BACKUP_FILE}.gz"
+          echo "Size: $(du -h "${BACKUP_FILE}.gz" | cut -f1)"
+          echo "BACKUP_FILE=${BACKUP_FILE}.gz" >> $GITHUB_ENV
+
+      - name: Upload backup as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: database-backup-${{ github.run_id }}
+          path: backups/*.sql.gz
+          retention-days: 30
+
+      - name: Notify on failure
+        if: failure()
+        run: echo "::error::Database backup failed!"
