@@ -25,6 +25,7 @@ import java.util.stream.Collectors;
  * <p>Endpoints:
  * <ul>
  *   <li>POST /api/entries - Complete a habit entry</li>
+ *   <li>DELETE /api/entries - Remove a habit entry (uncomplete)</li>
  *   <li>GET /api/entries/completed-routines - Get routine IDs completed on a date</li>
  * </ul>
  */
@@ -57,6 +58,25 @@ public class HabitEntryController {
         HabitEntryEntity entry = completeEntryUseCase.execute(command);
         HabitEntryDto dto = habitEntryDtoMapper.toDto(entry);
         return ResponseEntity.status(HttpStatus.CREATED).body(dto);
+    }
+
+    /**
+     * Removes a habit entry (uncompletes it) for a specific date.
+     *
+     * @param routineId the routine ID
+     * @param date the date to uncomplete
+     * @return 204 No Content on success
+     */
+    @DeleteMapping
+    public ResponseEntity<Void> uncompleteEntry(
+            @RequestParam String routineId,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
+
+        UUID routineUuid = UUID.fromString(routineId);
+        entryRepository.findByRoutineIdAndDate(routineUuid, date)
+                .ifPresent(entryRepository::delete);
+
+        return ResponseEntity.noContent().build();
     }
 
     /**

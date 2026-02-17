@@ -242,9 +242,10 @@ function createRoutineCard(routine, index) {
                 </div>
                 <div class="routine-buttons">
                     ${completedOnSelectedDate ? `
-                        <button disabled
-                                class="text-white text-base px-6 py-3 whitespace-nowrap rounded-lg shadow-md font-semibold opacity-90 cursor-not-allowed"
+                        <button onclick="uncompleteEntry('${routine.id}', this)"
+                                class="text-white text-base px-6 py-3 whitespace-nowrap rounded-lg shadow-md font-semibold transition-colors duration-200"
                                 style="background: linear-gradient(to right, #059669, #047857);"
+                                title="Click to unmark"
                                 id="complete-btn-${routine.id}">
                             ✓ ${isViewingToday ? 'Done Today!' : 'Done!'}
                         </button>
@@ -287,6 +288,33 @@ function escapeHtml(text) {
     const div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML;
+}
+
+// Uncomplete an entry (toggle off)
+async function uncompleteEntry(routineId, buttonElement) {
+    const dateStr = getSelectedDateString();
+
+    try {
+        const response = await secureFetch(`/api/entries?routineId=${routineId}&date=${dateStr}`, {
+            method: 'DELETE'
+        });
+
+        if (response.ok) {
+            // Update button to show uncompleted state
+            buttonElement.innerHTML = '✓ Mark Complete';
+            buttonElement.style.background = '#10b981';
+            buttonElement.onclick = function() {
+                openCompleteEntryModal(routineId, '', 'BOOLEAN', '', this);
+            };
+
+            // Refresh the list to get proper state
+            await loadDashboardData();
+        } else {
+            console.error('Failed to uncomplete entry');
+        }
+    } catch (error) {
+        console.error('Error uncompleting entry:', error);
+    }
 }
 
 // Store reference to the button being clicked
