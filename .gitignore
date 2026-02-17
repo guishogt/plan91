@@ -125,6 +125,7 @@ secrets/
 # Backup files
 *.bak
 *.backup
+backups/
 
 # Node.js and npm
 node_modules/
