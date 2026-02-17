@@ -7,11 +7,11 @@ This file tells agents what to work on and provides necessary context.
 (Path: `/epics/01-domain-model/EPIC.md`)
 
 ## Current Ticket
-**PLAN91-014** - Create Domain Services
-(Path: `/epics/01-domain-model/tickets/PLAN91-014.md`)
+**PLAN91-015** - Test one-strike rule with main() scenarios
+(Path: `/epics/01-domain-model/tickets/PLAN91-015.md`)
 
 **Status**: Ready to start
-**What to do**: Create domain services for complex business logic (StreakCalculation, RecurrenceEvaluation)
+**What to do**: Create comprehensive end-to-end tests for the one-strike rule
 
 **Epic 00 Complete!** 🎉 All setup and documentation finished.
 **PLAN91-008 Complete!** ✅ All 6 value objects created with 72 passing tests.
@@ -19,6 +19,7 @@ This file tells agents what to work on and provides necessary context.
 **PLAN91-010 Complete!** ✅ Habit aggregate with NumericConfig and 44 passing tests.
 **PLAN91-011 Complete!** ✅ Routine aggregate with streak tracking and 50 passing tests.
 **PLAN91-012 Complete!** ✅ HabitEntry entity with 18 passing tests.
+**PLAN91-014 Complete!** ✅ Domain services with 33 passing tests.
 **Renamed**: HabitTracker → HabitPractitioner (v1.1)
 
 ## Instructions for AI Agents
@@ -58,6 +59,7 @@ When starting work:
 - ✅ PLAN91-010: Create Habit aggregate with public/private logic (2026-01-30)
 - ✅ PLAN91-011: Create Routine aggregate with streak tracking (2026-01-31)
 - ✅ PLAN91-012: Create HabitEntry entity (2026-01-31)
+- ✅ PLAN91-014: Create Domain Services (2026-01-31)
 
 ## Notes
 - All ticket numbers are sequential (001, 002, 003...) across all epics
