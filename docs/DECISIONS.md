@@ -156,6 +156,63 @@ public class HabitStreak {
 
 ---
 
+## ADR-006: Git Branch Strategy
+
+**Date**: 2026-01-29
+**Status**: Accepted
+**Context**:
+- Need clear branching model for agent-driven development
+- Must support parallel work on different epics
+- Should enable safe integration and deployment
+
+**Decision**:
+
+**Main Branches**:
+- `master` - Production-ready code (deployed to Railway)
+- `develop` - Integration branch for completed features
+
+**Supporting Branches**:
+- `epic/{epic-id}` - One branch per epic (e.g., `epic/00-setup`, `epic/01-domain-model`)
+- `ticket/{ticket-id}` - Optional, for complex tickets (e.g., `ticket/PLAN91-025`)
+
+**Workflow**:
+1. Create epic branch from `develop`: `git checkout -b epic/01-domain-model develop`
+2. Work on tickets in epic branch (or create ticket sub-branches)
+3. Commit with ticket references: `git commit -m "feat: add HabitStreak [PLAN91-011]"`
+4. When epic complete, merge to `develop`: `git checkout develop && git merge epic/01-domain-model`
+5. Test on `develop`
+6. Merge `develop` to `master` for production releases
+
+**Commit Message Format**:
+```
+<type>(<scope>): <subject>
+
+[optional body]
+
+Epic: <epic-id>
+Tickets: <ticket-ids>
+```
+
+Types: `feat`, `fix`, `docs`, `refactor`, `test`, `chore`
+
+**Consequences**:
+- ✅ Clear separation of work by epic
+- ✅ Easy to see what's in progress
+- ✅ Safe integration point (develop)
+- ✅ Production branch (master) always deployable
+- ⚠️ Need discipline to keep branches up to date
+
+**Current State**:
+- Repository initialized on `master` branch
+- Git configured with user: Luis Fernandez <luishernan@gmail.com>
+- Initial commit includes Epic 0 setup
+
+**Next Steps**:
+- Can create `develop` branch when needed
+- Start working in `epic/00-setup` or continue on `master` for now
+
+---
+
 ## Template for Future ADRs
 
 ```markdown
