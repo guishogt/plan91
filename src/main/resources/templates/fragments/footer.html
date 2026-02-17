@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Footer Fragment</title>
+</head>
+<body>
+
+<!-- Footer Fragment -->
+<footer th:fragment="footer" class="bg-gray-800 text-gray-300 mt-auto">
+    <div class="max-w-7xl mx-auto px-4 py-8">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+
+            <!-- About Section -->
+            <div>
+                <h3 class="text-white font-semibold mb-3">About Plan 91</h3>
+                <p class="text-sm text-gray-400">
+                    Build lasting habits with 91-day commitment cycles and the one-strike rule.
+                    Transform your life, one habit at a time.
+                </p>
+            </div>
+
+            <!-- Quick Links (placeholder) -->
+            <div>
+                <h3 class="text-white font-semibold mb-3">Quick Links</h3>
+                <ul class="space-y-2 text-sm">
+                    <li><a href="#" class="text-gray-400 hover:text-white transition-colors">Dashboard</a></li>
+                    <li><a href="#" class="text-gray-400 hover:text-white transition-colors">My Habits</a></li>
+                    <li><a href="#" class="text-gray-400 hover:text-white transition-colors">Public Habits</a></li>
+                    <li><a href="#" class="text-gray-400 hover:text-white transition-colors">Analytics</a></li>
+                </ul>
+            </div>
+
+            <!-- Legal Links -->
+            <div>
+                <h3 class="text-white font-semibold mb-3">Legal</h3>
+                <ul class="space-y-2 text-sm">
+                    <li><a href="#" class="text-gray-400 hover:text-white transition-colors">Privacy Policy</a></li>
+                    <li><a href="#" class="text-gray-400 hover:text-white transition-colors">Terms of Service</a></li>
+                    <li><a href="#" class="text-gray-400 hover:text-white transition-colors">Contact Us</a></li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Copyright -->
+        <div class="border-t border-gray-700 mt-8 pt-6">
+            <div class="flex flex-col md:flex-row justify-between items-center">
+                <p class="text-sm text-gray-500">
+                    &copy; <span th:text="${#dates.year(#dates.createNow())}">2026</span> Plan 91. All rights reserved.
+                </p>
+                <p class="text-xs text-gray-600 mt-2 md:mt-0">
+                    Epic 02: Frontend Foundation | Built with Spring Boot, HTMX & Tailwind CSS
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+</body>
+</html>

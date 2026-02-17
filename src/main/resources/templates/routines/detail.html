@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Routine Details - Plan 91</title>
+    <link rel="stylesheet" th:href="@{/css/styles.css(v=6)}">
+</head>
+<body class="bg-gray-50">
+<!-- Navigation -->
+<nav class="bg-white shadow-sm">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between items-center h-16">
+            <div class="flex items-center">
+                <h1 class="text-xl font-bold text-blue-600">Plan 91</h1>
+            </div>
+            <button id="menu-button" onclick="toggleMenu()" class="md:hidden p-2 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100">
+                <svg id="menu-icon" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+                </svg>
+                <svg id="close-icon" class="h-6 w-6 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
+            <div class="hidden md:flex space-x-4">
+                <a href="/habits/dashboard" class="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium">Dashboard</a>
+                <a href="/habits" class="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium">My Habits</a>
+                <a href="/habits/browse" class="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium">Browse</a>
+                <a href="/habits/create" class="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium">Create</a>
+                <a href="/logout" class="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium">Logout</a>
+            </div>
+        </div>
+    </div>
+    <!-- Mobile menu -->
+    <div id="mobile-menu" class="hidden md:hidden">
+        <div class="px-2 pt-2 pb-3 space-y-1">
+            <a href="/habits/dashboard" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-gray-100">Dashboard</a>
+            <a href="/habits" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-gray-100">My Habits</a>
+            <a href="/habits/browse" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-gray-100">Browse</a>
+            <a href="/habits/create" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-gray-100">Create</a>
+            <a href="/logout" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-gray-100">Logout</a>
+        </div>
+    </div>
+</nav>
+
+<!-- Main Content -->
+<main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- Header -->
+    <div class="mb-6">
+        <div class="flex items-center gap-2 mb-2">
+            <a href="/habits/dashboard" class="text-blue-600 hover:text-blue-800">← Back to Dashboard</a>
+        </div>
+        <h2 id="routine-title" class="text-3xl font-bold text-gray-900">Loading...</h2>
+        <p id="routine-description" class="text-gray-600 mt-1"></p>
+    </div>
+
+    <!-- Progress Overview -->
+    <div id="progress-container" class="mb-8">
+        <!-- Progress components will be inserted here -->
+    </div>
+
+    <!-- Calendar View -->
+    <div id="calendar-container" class="mb-8">
+        <!-- Calendar component will be inserted here -->
+    </div>
+
+    <!-- Completion History -->
+    <div class="bg-white rounded-lg shadow-md p-6">
+        <h3 class="text-xl font-semibold mb-4">Recent Completions</h3>
+        <div id="recent-entries" class="space-y-2">
+            <!-- Recent entries will be inserted here -->
+        </div>
+    </div>
+</main>
+
+<script th:src="@{/js/navigation.js}"></script>
+<script th:src="@{/js/calendar.js}"></script>
+<script th:src="@{/js/progress.js}"></script>
+<script>
+    // Get routine ID from URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const routineId = urlParams.get('id');
+
+    if (!routineId) {
+        alert('No routine ID provided');
+        window.location.href = '/habits/dashboard';
+    }
+
+    // Load routine details
+    async function loadRoutineDetails() {
+        try {
+            const response = await fetch(`/api/routines/${routineId}`);
+            if (!response.ok) {
+                throw new Error('Failed to load routine');
+            }
+            const routine = await response.json();
+
+            // Update header
+            document.getElementById('routine-title').textContent = routine.habitName;
+            document.getElementById('routine-description').textContent =
+                `Started ${routine.startDate} • ${routine.status}`;
+
+            // Initialize visualization components
+            new RoutineProgress('progress-container', routineId);
+            new RoutineCalendar('calendar-container', routineId);
+
+            // Load recent entries
+            loadRecentEntries();
+        } catch (error) {
+            console.error('Error loading routine:', error);
+            document.getElementById('routine-title').textContent = 'Error loading routine';
+        }
+    }
+
+    async function loadRecentEntries() {
+        try {
+            // Get current year-month
+            const now = new Date();
+            const yearMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+
+            const response = await fetch(`/api/routines/${routineId}/calendar?yearMonth=${yearMonth}`);
+            if (!response.ok) {
+                throw new Error('Failed to load entries');
+            }
+            const calendarData = await response.json();
+
+            // Sort entries by date descending and take top 10
+            const recentEntries = [...calendarData.entries]
+                .sort((a, b) => new Date(b.date) - new Date(a.date))
+                .slice(0, 10);
+
+            const container = document.getElementById('recent-entries');
+            if (recentEntries.length === 0) {
+                container.innerHTML = '<p class="text-gray-500">No entries yet</p>';
+                return;
+            }
+
+            container.innerHTML = recentEntries.map(entry => `
+                <div class="flex items-center justify-between p-3 border rounded hover:bg-gray-50">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-full flex items-center justify-center ${
+                            entry.completed ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-gray-400'
+                        }">
+                            ${entry.completed ? '✓' : '○'}
+                        </div>
+                        <div>
+                            <div class="font-medium">${formatDate(entry.date)}</div>
+                            ${entry.notes ? `<div class="text-sm text-gray-600">${entry.notes}</div>` : ''}
+                        </div>
+                    </div>
+                    ${entry.value !== null ? `<div class="text-lg font-semibold text-blue-600">${entry.value}</div>` : ''}
+                </div>
+            `).join('');
+        } catch (error) {
+            console.error('Error loading recent entries:', error);
+        }
+    }
+
+    function formatDate(dateStr) {
+        const date = new Date(dateStr);
+        const today = new Date();
+        const yesterday = new Date(today);
+        yesterday.setDate(yesterday.getDate() - 1);
+
+        const dateOnly = date.toISOString().split('T')[0];
+        const todayOnly = today.toISOString().split('T')[0];
+        const yesterdayOnly = yesterday.toISOString().split('T')[0];
+
+        if (dateOnly === todayOnly) return 'Today';
+        if (dateOnly === yesterdayOnly) return 'Yesterday';
+
+        return date.toLocaleDateString('default', { weekday: 'short', month: 'short', day: 'numeric' });
+    }
+
+    // Initialize on page load
+    loadRoutineDetails();
+</script>
+</body>
+</html>

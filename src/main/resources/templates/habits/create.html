@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Habit - Plan 91</title>
+    <link rel="stylesheet" th:href="@{/css/styles.css(v=6)}">
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <script th:src="@{/js/auth.js}"></script>
+    <!-- Navigation -->
+    <nav class="bg-white shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <a href="/habits/dashboard" class="text-2xl font-bold text-blue-600">Plan 91</a>
+                </div>
+                <div class="flex items-center">
+                    <button id="menu-button" onclick="toggleMenu()" class="text-gray-600 hover:text-gray-900 focus:outline-none">
+                        <svg id="menu-icon" class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                        </svg>
+                        <svg id="close-icon" class="h-6 w-6 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile menu -->
+        <div id="mobile-menu" class="hidden">
+            <div class="px-2 pt-2 pb-3 space-y-1 bg-white border-t border-gray-200">
+                <a href="/habits/dashboard" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50">Dashboard</a>
+                <a href="/habits" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50">My Habits</a>
+                <a href="/habits/browse" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50">Browse Public Habits</a>
+                <a href="/habits/create" class="block px-3 py-2 rounded-md text-base font-medium text-blue-600 bg-blue-50">Create New Habit</a>
+                <hr class="my-2">
+                <a href="/practitioners/profile" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50">My Profile</a>
+                <a href="/profile" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50">Settings</a>
+            </div>
+        </div>
+    </nav>
+    <script th:src="@{/js/navigation.js}"></script>
+
+    <!-- Main Content -->
+    <div class="max-w-3xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+        <div class="bg-white rounded-lg shadow-md p-8">
+            <h1 class="text-3xl font-bold text-gray-900 mb-2">Create a New Habit</h1>
+            <p class="text-gray-600 mb-8">Define a habit you want to practice for 91 days</p>
+
+            <form id="createHabitForm">
+                <!-- Basic Info -->
+                <div class="space-y-6">
+                    <!-- Name -->
+                    <div>
+                        <label for="name" class="block text-sm font-medium text-gray-700 mb-2">Habit Name *</label>
+                        <input type="text" id="name" name="name" required
+                               class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                               placeholder="e.g., Morning meditation, Daily exercise">
+                    </div>
+
+                    <!-- Description -->
+                    <div>
+                        <label for="description" class="block text-sm font-medium text-gray-700 mb-2">Description</label>
+                        <textarea id="description" name="description" rows="3"
+                                  class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                  placeholder="Why is this habit important to you?"></textarea>
+                    </div>
+
+                    <!-- Tracking Type -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Tracking Type *</label>
+                        <div class="space-y-3">
+                            <label class="flex items-start cursor-pointer">
+                                <input type="radio" name="trackingType" value="BOOLEAN" checked
+                                       class="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500">
+                                <div class="ml-3">
+                                    <div class="font-medium text-gray-900">Simple (Yes/No)</div>
+                                    <div class="text-sm text-gray-500">Track completion only (e.g., "Did you meditate today?")</div>
+                                </div>
+                            </label>
+                            <label class="flex items-start cursor-pointer">
+                                <input type="radio" name="trackingType" value="NUMERIC"
+                                       class="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500">
+                                <div class="ml-3">
+                                    <div class="font-medium text-gray-900">Numeric</div>
+                                    <div class="text-sm text-gray-500">Track a number (e.g., "How many minutes?", "How many pages?")</div>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Numeric Config (hidden by default) -->
+                    <div id="numericConfig" class="hidden space-y-4 p-4 bg-gray-50 rounded-md">
+                        <div>
+                            <label for="numericUnit" class="block text-sm font-medium text-gray-700 mb-2">Unit *</label>
+                            <input type="text" id="numericUnit" name="numericUnit"
+                                   class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                   placeholder="e.g., minutes, pages, reps">
+                        </div>
+                        <div class="grid grid-cols-3 gap-4">
+                            <div>
+                                <label for="numericMin" class="block text-sm font-medium text-gray-700 mb-2">Min</label>
+                                <input type="number" id="numericMin" name="numericMin"
+                                       class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                       placeholder="0">
+                            </div>
+                            <div>
+                                <label for="numericMax" class="block text-sm font-medium text-gray-700 mb-2">Max</label>
+                                <input type="number" id="numericMax" name="numericMax"
+                                       class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                       placeholder="100">
+                            </div>
+                            <div>
+                                <label for="numericTarget" class="block text-sm font-medium text-gray-700 mb-2">Target</label>
+                                <input type="number" id="numericTarget" name="numericTarget"
+                                       class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                       placeholder="30">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Visibility -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Visibility</label>
+                        <div class="space-y-3">
+                            <label class="flex items-start cursor-pointer">
+                                <input type="radio" name="visibility" value="normal" checked
+                                       class="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500">
+                                <div class="ml-3">
+                                    <div class="font-medium text-gray-900">Normal</div>
+                                    <div class="text-sm text-gray-500">Visible to you only</div>
+                                </div>
+                            </label>
+                            <label class="flex items-start cursor-pointer">
+                                <input type="radio" name="visibility" value="public"
+                                       class="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500">
+                                <div class="ml-3">
+                                    <div class="font-medium text-gray-900">Public</div>
+                                    <div class="text-sm text-gray-500">Others can discover and copy this habit</div>
+                                </div>
+                            </label>
+                            <label class="flex items-start cursor-pointer">
+                                <input type="radio" name="visibility" value="private"
+                                       class="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500">
+                                <div class="ml-3">
+                                    <div class="font-medium text-gray-900">Private</div>
+                                    <div class="text-sm text-gray-500">Completely private, not shareable</div>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Error Message -->
+                <div id="errorMessage" class="hidden mt-4 p-4 bg-red-50 border border-red-200 rounded-md">
+                    <p class="text-red-800"></p>
+                </div>
+
+                <!-- Submit -->
+                <div class="mt-8 flex justify-end space-x-4">
+                    <a href="/habits" class="px-6 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50">Cancel</a>
+                    <button type="submit" class="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
+                        Create Habit
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Toggle numeric config visibility
+        document.querySelectorAll('input[name="trackingType"]').forEach(radio => {
+            radio.addEventListener('change', function() {
+                const numericConfig = document.getElementById('numericConfig');
+                if (this.value === 'NUMERIC') {
+                    numericConfig.classList.remove('hidden');
+                    document.getElementById('numericUnit').required = true;
+                } else {
+                    numericConfig.classList.add('hidden');
+                    document.getElementById('numericUnit').required = false;
+                }
+            });
+        });
+
+        // Form submission
+        document.getElementById('createHabitForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const practitionerId = getCurrentPractitionerId();
+            if (!practitionerId) {
+                showError('Please set up your account first. Practitioner ID not found.');
+                return;
+            }
+
+            const formData = new FormData(e.target);
+            const trackingType = formData.get('trackingType');
+            const visibility = formData.get('visibility');
+
+            const data = {
+                practitionerId: practitionerId,
+                name: formData.get('name'),
+                description: formData.get('description') || null,
+                trackingType: trackingType,
+                numericUnit: trackingType === 'NUMERIC' ? formData.get('numericUnit') : null,
+                numericMin: trackingType === 'NUMERIC' ? parseInt(formData.get('numericMin')) || null : null,
+                numericMax: trackingType === 'NUMERIC' ? parseInt(formData.get('numericMax')) || null : null,
+                numericTarget: trackingType === 'NUMERIC' ? parseInt(formData.get('numericTarget')) || null : null,
+                isPublic: visibility === 'public',
+                isPrivate: visibility === 'private'
+            };
+
+            try {
+                const response = await fetch('/api/habits', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                if (response.ok) {
+                    const habit = await response.json();
+                    // Redirect to habit list
+                    window.location.href = '/habits';
+                } else {
+                    const error = await response.text();
+                    showError(error || 'Failed to create habit');
+                }
+            } catch (error) {
+                showError('Network error: ' + error.message);
+            }
+        });
+
+        function showError(message) {
+            const errorDiv = document.getElementById('errorMessage');
+            errorDiv.querySelector('p').textContent = message;
+            errorDiv.classList.remove('hidden');
+        }
+    </script>
+</body>
+</html>

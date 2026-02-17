@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" th:content="${metaDescription} ?: 'Plan 91 - Build habits that last with 91-day cycles and the one-strike rule'">
+    <meta name="author" content="Plan 91">
+
+    <!-- Page Title -->
+    <title layout:title-pattern="$CONTENT_TITLE - $LAYOUT_TITLE">Plan 91</title>
+
+    <!-- Favicon (placeholder - will add actual favicon later) -->
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+
+    <!-- Tailwind CSS -->
+    <link rel="stylesheet" th:href="@{/css/styles.css(v=6)}">
+
+    <!-- Additional CSS from child templates -->
+    <th:block layout:fragment="extra-css">
+        <!-- Child templates can add additional CSS here -->
+    </th:block>
+</head>
+<body class="min-h-screen flex flex-col bg-gray-50">
+
+    <!-- Header -->
+    <header th:replace="~{fragments/header :: header}"></header>
+
+    <!-- Flash Messages Area (for success/error notifications) -->
+    <div th:if="${message}" class="max-w-7xl mx-auto w-full px-4 mt-4">
+        <div th:class="${'alert-' + messageType}"
+             class="rounded-lg p-4 shadow-md"
+             th:classappend="${messageType == 'success'} ? 'bg-success-50 border border-success-200 text-success-800' :
+                            (${messageType == 'error'} ? 'bg-danger-50 border border-danger-200 text-danger-800' :
+                            'bg-primary-50 border border-primary-200 text-primary-800')">
+            <p th:text="${message}"></p>
+        </div>
+    </div>
+
+    <!-- Main Content Area -->
+    <main class="flex-1 max-w-7xl mx-auto w-full px-4 py-8">
+        <!-- Child templates inject their content here -->
+        <div layout:fragment="content">
+            <p class="text-gray-500">No content defined</p>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer th:replace="~{fragments/footer :: footer}"></footer>
+
+    <!-- JavaScript Libraries -->
+    <script src="/js/htmx.min.js"></script>
+    <script src="/js/alpine.min.js" defer></script>
+
+    <!-- Additional JavaScript from child templates -->
+    <th:block layout:fragment="extra-js">
+        <!-- Child templates can add additional JavaScript here -->
+    </th:block>
+
+    <!-- Global HTMX Configuration -->
+    <script>
+        // HTMX global configuration
+        document.body.addEventListener('htmx:configRequest', function(evt) {
+            // Add CSRF token if needed
+            // evt.detail.headers['X-CSRF-TOKEN'] = document.querySelector('meta[name="_csrf"]').content;
+        });
+
+        // Global error handler
+        document.body.addEventListener('htmx:responseError', function(evt) {
+            console.error('HTMX Error:', evt.detail);
+            // Show user-friendly error message
+            alert('An error occurred. Please try again.');
+        });
+    </script>
+</body>
+</html>

@@ -14,6 +14,7 @@ import java.util.Set;
  *   <li>WEEKENDS - Saturday and Sunday</li>
  *   <li>SPECIFIC_DAYS - Selected days (e.g., Mon, Wed, Fri)</li>
  *   <li>NTH_DAY_OF_MONTH - Nth weekday of month (e.g., first Monday)</li>
+ *   <li>TIMES_PER_WEEK_X - Flexible: complete X times per week on any days</li>
  * </ul>
  */
 public record RecurrenceRule(
@@ -96,6 +97,24 @@ public record RecurrenceRule(
     }
 
     /**
+     * Creates a flexible X times per week recurrence.
+     * User can complete on any days, as long as they hit the weekly target.
+     *
+     * @param timesPerWeek how many times per week (1, 3, 4, 5, or 6)
+     */
+    public static RecurrenceRule timesPerWeek(int timesPerWeek) {
+        RecurrenceType type = switch (timesPerWeek) {
+            case 1 -> RecurrenceType.TIMES_PER_WEEK_1;
+            case 3 -> RecurrenceType.TIMES_PER_WEEK_3;
+            case 4 -> RecurrenceType.TIMES_PER_WEEK_4;
+            case 5 -> RecurrenceType.TIMES_PER_WEEK_5;
+            case 6 -> RecurrenceType.TIMES_PER_WEEK_6;
+            default -> throw new IllegalArgumentException("Invalid times per week: " + timesPerWeek + ". Valid values: 1, 3, 4, 5, 6");
+        };
+        return new RecurrenceRule(type, null, null, null);
+    }
+
+    /**
      * Checks if this recurrence expects a completion on the given date.
      *
      * @param date the date to check
@@ -133,6 +152,39 @@ public record RecurrenceRule(
                 int weekOfMonth = (date.getDayOfMonth() - 1) / 7 + 1;
                 yield weekOfMonth == nthWeek;
             }
+
+            // Flexible weekly types: any day is valid for completion
+            case TIMES_PER_WEEK_1, TIMES_PER_WEEK_3, TIMES_PER_WEEK_4,
+                 TIMES_PER_WEEK_5, TIMES_PER_WEEK_6 -> true;
+        };
+    }
+
+    /**
+     * Returns how many times per week this recurrence expects, if applicable.
+     * Returns 0 for non-weekly flexible types.
+     */
+    public int getTimesPerWeek() {
+        return switch (type) {
+            case TIMES_PER_WEEK_1 -> 1;
+            case TIMES_PER_WEEK_3 -> 3;
+            case TIMES_PER_WEEK_4 -> 4;
+            case TIMES_PER_WEEK_5 -> 5;
+            case TIMES_PER_WEEK_6 -> 6;
+            case DAILY -> 7;
+            case WEEKDAYS -> 5;
+            case WEEKENDS -> 2;
+            default -> 0;
+        };
+    }
+
+    /**
+     * Returns true if this is a flexible weekly frequency type.
+     */
+    public boolean isFlexibleWeekly() {
+        return switch (type) {
+            case TIMES_PER_WEEK_1, TIMES_PER_WEEK_3, TIMES_PER_WEEK_4,
+                 TIMES_PER_WEEK_5, TIMES_PER_WEEK_6 -> true;
+            default -> false;
         };
     }
 

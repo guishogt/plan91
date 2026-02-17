@@ -26,6 +26,7 @@ public class HabitPractitioner {
     private final String firstName;
     private final String lastName;
     private final Email email;
+    private String bio;  // Mutable - can be updated for public profile
 
     // Auth & tracking
     private final String auth0Id;
@@ -45,6 +46,7 @@ public class HabitPractitioner {
      * @param firstName the first name (1-100 characters)
      * @param lastName the last name (1-100 characters)
      * @param email the email address
+     * @param bio optional bio/description for public profile (max 500 characters)
      * @param auth0Id the Auth0 provider ID
      * @param originalTimezone the user's timezone (e.g., "America/Los_Angeles")
      * @param createdAt when the practitioner was created
@@ -54,6 +56,7 @@ public class HabitPractitioner {
             String firstName,
             String lastName,
             Email email,
+            String bio,
             String auth0Id,
             String originalTimezone,
             Instant createdAt) {
@@ -62,6 +65,7 @@ public class HabitPractitioner {
         this.firstName = validateName(firstName, "First name");
         this.lastName = validateName(lastName, "Last name");
         this.email = Objects.requireNonNull(email, "Email cannot be null");
+        this.bio = validateBio(bio);
         this.auth0Id = validateAuth0Id(auth0Id);
         this.originalTimezone = validateTimezone(originalTimezone);
         this.createdAt = validateCreatedAt(createdAt);
@@ -92,10 +96,21 @@ public class HabitPractitioner {
                 firstName,
                 lastName,
                 email,
+                null,  // No bio initially
                 auth0Id,
                 originalTimezone,
                 Instant.now()
         );
+    }
+
+    /**
+     * Updates the practitioner's bio.
+     *
+     * @param bio the new bio (max 500 characters, can be null)
+     */
+    public void updateBio(String bio) {
+        this.bio = validateBio(bio);
+        this.updatedAt = Instant.now();
     }
 
     /**
@@ -152,6 +167,20 @@ public class HabitPractitioner {
         return trimmed;
     }
 
+    private String validateBio(String bio) {
+        if (bio == null) {
+            return null;  // Bio is optional
+        }
+        String trimmed = bio.trim();
+        if (trimmed.isEmpty()) {
+            return null;  // Treat empty string as null
+        }
+        if (trimmed.length() > 500) {
+            throw new IllegalArgumentException("Bio must be at most 500 characters, got: " + trimmed.length());
+        }
+        return trimmed;
+    }
+
     private String validateAuth0Id(String auth0Id) {
         if (auth0Id == null || auth0Id.isBlank()) {
             throw new IllegalArgumentException("Auth0 ID cannot be null or blank");
@@ -198,6 +227,10 @@ public class HabitPractitioner {
 
     public Email getEmail() {
         return email;
+    }
+
+    public String getBio() {
+        return bio;
     }
 
     public String getAuth0Id() {
@@ -279,6 +312,7 @@ public class HabitPractitioner {
                 "Jane",
                 "Doe",
                 new Email("jane@example.com"),
+                null,  // bio
                 "auth0|789012",
                 "Europe/London",
                 now
@@ -320,7 +354,7 @@ public class HabitPractitioner {
         // Test 7: Null ID validation
         try {
             new HabitPractitioner(null, "John", "Smith", new Email("john@example.com"),
-                    "auth0|456", "UTC", Instant.now());
+                    null, "auth0|456", "UTC", Instant.now());
             assert false : "Should throw for null ID";
         } catch (NullPointerException e) {
             System.out.println("✓ Test 7: Null ID validation works: " + e.getMessage());
@@ -410,7 +444,7 @@ public class HabitPractitioner {
         // Test 17: Null createdAt validation
         try {
             new HabitPractitioner(HabitPractitionerId.generate(), "John", "Smith",
-                    new Email("test@example.com"), "auth0|456", "UTC", null);
+                    new Email("test@example.com"), null, "auth0|456", "UTC", null);
             assert false : "Should throw for null createdAt";
         } catch (IllegalArgumentException e) {
             System.out.println("✓ Test 17: Null createdAt validation works: " + e.getMessage());
@@ -420,7 +454,7 @@ public class HabitPractitioner {
         try {
             Instant future = Instant.now().plusSeconds(3600);
             new HabitPractitioner(HabitPractitionerId.generate(), "John", "Smith",
-                    new Email("test@example.com"), "auth0|456", "UTC", future);
+                    new Email("test@example.com"), null, "auth0|456", "UTC", future);
             assert false : "Should throw for future createdAt";
         } catch (IllegalArgumentException e) {
             System.out.println("✓ Test 18: Future createdAt validation works: " + e.getMessage());
@@ -446,7 +480,7 @@ public class HabitPractitioner {
         HabitPractitioner p1 = HabitPractitioner.create("A", "B", new Email("a@b.com"), "auth0|1", "UTC");
         HabitPractitioner p2 = HabitPractitioner.create("A", "B", new Email("a@b.com"), "auth0|1", "UTC");
         assert !p1.equals(p2) : "Different IDs should not be equal";
-        HabitPractitioner p3 = new HabitPractitioner(p1.getId(), "C", "D", new Email("c@d.com"), "auth0|2", "UTC", Instant.now());
+        HabitPractitioner p3 = new HabitPractitioner(p1.getId(), "C", "D", new Email("c@d.com"), null, "auth0|2", "UTC", Instant.now());
         assert p1.equals(p3) : "Same ID should be equal";
         System.out.println("✓ Test 21: Equality based on ID works");
 

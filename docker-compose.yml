@@ -1,0 +1,81 @@
+services:
+  # MySQL Database
+  mysql:
+    image: mysql:8.0
+    container_name: plan91-mysql
+    restart: unless-stopped
+    environment:
+      # Root password (for admin access)
+      MYSQL_ROOT_PASSWORD: plan91_root_password
+
+      # Application database
+      MYSQL_DATABASE: plan91_db
+
+      # Application user
+      MYSQL_USER: plan91_user
+      MYSQL_PASSWORD: plan91_password
+
+      # Configure MySQL for better defaults
+      MYSQL_CHARSET: utf8mb4
+      MYSQL_COLLATION: utf8mb4_unicode_ci
+
+    ports:
+      # Map MySQL port to host (using 3307 to avoid conflict with system MariaDB on 3306)
+      - "3307:3306"
+
+    volumes:
+      # Persist database data across container restarts
+      - mysql_data:/var/lib/mysql
+
+      # Custom MySQL configuration (optional)
+      # - ./docker/mysql/my.cnf:/etc/mysql/conf.d/my.cnf
+
+    command:
+      # Custom MySQL startup options
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+      - --default-authentication-plugin=mysql_native_password
+      - --max_connections=200
+      - --innodb_buffer_pool_size=256M
+
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-pplan91_root_password"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+    networks:
+      - plan91-network
+
+  # phpMyAdmin (optional - for database management UI)
+  phpmyadmin:
+    image: phpmyadmin:latest
+    container_name: plan91-phpmyadmin
+    restart: unless-stopped
+    environment:
+      PMA_HOST: mysql
+      PMA_PORT: 3306
+      PMA_USER: plan91_user
+      PMA_PASSWORD: plan91_password
+      MYSQL_ROOT_PASSWORD: plan91_root_password
+
+    ports:
+      - "8081:80"
+
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+    networks:
+      - plan91-network
+
+# Volumes for persistent data
+volumes:
+  mysql_data:
+    driver: local
+
+# Networks
+networks:
+  plan91-network:
+    driver: bridge

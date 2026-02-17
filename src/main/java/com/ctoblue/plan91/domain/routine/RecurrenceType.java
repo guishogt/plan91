@@ -10,6 +10,7 @@ package com.ctoblue.plan91.domain.routine;
  *   <li>WEEKENDS - Saturday and Sunday</li>
  *   <li>SPECIFIC_DAYS - Selected days (e.g., Mon, Wed, Fri)</li>
  *   <li>NTH_DAY_OF_MONTH - Specific weekday of month (e.g., first Monday)</li>
+ *   <li>TIMES_PER_WEEK_X - Flexible: complete X times per week on any days</li>
  * </ul>
  */
 public enum RecurrenceType {
@@ -39,5 +40,30 @@ public enum RecurrenceType {
      * Example: First Monday, Third Friday
      * Requires nthDay and nthWeek to be set in RecurrenceRule.
      */
-    NTH_DAY_OF_MONTH
+    NTH_DAY_OF_MONTH,
+
+    /**
+     * Flexible: complete 1 time per week on any day.
+     */
+    TIMES_PER_WEEK_1,
+
+    /**
+     * Flexible: complete 3 times per week on any days.
+     */
+    TIMES_PER_WEEK_3,
+
+    /**
+     * Flexible: complete 4 times per week on any days.
+     */
+    TIMES_PER_WEEK_4,
+
+    /**
+     * Flexible: complete 5 times per week on any days.
+     */
+    TIMES_PER_WEEK_5,
+
+    /**
+     * Flexible: complete 6 times per week on any days.
+     */
+    TIMES_PER_WEEK_6
 }

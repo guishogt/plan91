@@ -1,0 +1,16 @@
+{
+  "name": "plan91-frontend",
+  "version": "1.0.0",
+  "description": "Frontend build tools for Plan 91 habit tracking application",
+  "scripts": {
+    "build": "tailwindcss -i ./src/main/resources/static/css/input.css -o ./src/main/resources/static/css/styles.css --minify",
+    "watch": "tailwindcss -i ./src/main/resources/static/css/input.css -o ./src/main/resources/static/css/styles.css --watch"
+  },
+  "keywords": ["tailwindcss", "htmx", "plan91"],
+  "author": "Plan 91 Team",
+  "license": "MIT",
+  "devDependencies": {
+    "tailwindcss": "^3.4.1",
+    "@tailwindcss/forms": "^0.5.7"
+  }
+}

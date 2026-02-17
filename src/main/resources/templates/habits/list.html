@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Habits - Plan 91</title>
+    <link rel="stylesheet" th:href="@{/css/styles.css(v=6)}">
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <script th:src="@{/js/auth.js}"></script>
+    <!-- Navigation -->
+    <nav class="bg-white shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <a href="/habits/dashboard" class="text-2xl font-bold text-blue-600">Plan 91</a>
+                </div>
+                <div class="flex items-center">
+                    <button id="menu-button" onclick="toggleMenu()" class="text-gray-600 hover:text-gray-900 focus:outline-none">
+                        <svg id="menu-icon" class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                        </svg>
+                        <svg id="close-icon" class="h-6 w-6 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile menu -->
+        <div id="mobile-menu" class="hidden">
+            <div class="px-2 pt-2 pb-3 space-y-1 bg-white border-t border-gray-200">
+                <a href="/habits/dashboard" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50">Dashboard</a>
+                <a href="/habits" class="block px-3 py-2 rounded-md text-base font-medium text-blue-600 bg-blue-50">My Habits</a>
+                <a href="/habits/browse" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50">Browse Public Habits</a>
+                <a href="/habits/create" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50">Create New Habit</a>
+                <hr class="my-2">
+                <a href="/practitioners/profile" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50">My Profile</a>
+                <a href="/profile" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50">Settings</a>
+            </div>
+        </div>
+    </nav>
+    <script th:src="@{/js/navigation.js}"></script>
+
+    <!-- Main Content -->
+    <div class="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between items-center mb-8">
+            <div>
+                <h1 class="text-3xl font-bold text-gray-900">My Habits</h1>
+                <p class="text-gray-600 mt-1">Habits you've created</p>
+            </div>
+            <a href="/habits/create" class="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
+                + Create Habit
+            </a>
+        </div>
+
+        <!-- Loading State -->
+        <div id="loadingState" class="text-center py-12">
+            <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+            <p class="text-gray-600 mt-4">Loading habits...</p>
+        </div>
+
+        <!-- Empty State -->
+        <div id="emptyState" class="hidden text-center py-12">
+            <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+            </svg>
+            <h3 class="mt-2 text-sm font-medium text-gray-900">No habits</h3>
+            <p class="mt-1 text-sm text-gray-500">Get started by creating your first habit.</p>
+            <div class="mt-6">
+                <a href="/habits/create" class="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
+                    + Create Habit
+                </a>
+            </div>
+        </div>
+
+        <!-- Habits Grid -->
+        <div id="habitsGrid" class="hidden grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- Habits will be inserted here -->
+        </div>
+    </div>
+
+    <!-- Start Routine Modal -->
+    <div id="startRoutineModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+            <div class="p-6">
+                <h2 class="text-2xl font-bold text-gray-900 mb-4">Start 91-Day Routine</h2>
+                <p class="text-gray-600 mb-6">Configure when you'll practice this habit</p>
+
+                <form id="startRoutineForm">
+                    <input type="hidden" id="selectedHabitId">
+                    <input type="hidden" id="selectedHabitName">
+
+                    <div class="space-y-6">
+                        <!-- Recurrence Type -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">How often? *</label>
+                            <div class="space-y-3">
+                                <label class="flex items-start cursor-pointer">
+                                    <input type="radio" name="recurrenceType" value="DAILY" checked
+                                           class="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500">
+                                    <div class="ml-3">
+                                        <div class="font-medium text-gray-900">Every day</div>
+                                        <div class="text-sm text-gray-500">Practice daily for 91 days</div>
+                                    </div>
+                                </label>
+                                <label class="flex items-start cursor-pointer">
+                                    <input type="radio" name="recurrenceType" value="WEEKDAYS"
+                                           class="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500">
+                                    <div class="ml-3">
+                                        <div class="font-medium text-gray-900">Weekdays only</div>
+                                        <div class="text-sm text-gray-500">Monday through Friday</div>
+                                    </div>
+                                </label>
+                                <label class="flex items-start cursor-pointer">
+                                    <input type="radio" name="recurrenceType" value="WEEKENDS"
+                                           class="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500">
+                                    <div class="ml-3">
+                                        <div class="font-medium text-gray-900">Weekends only</div>
+                                        <div class="text-sm text-gray-500">Saturday and Sunday</div>
+                                    </div>
+                                </label>
+                                <label class="flex items-start cursor-pointer">
+                                    <input type="radio" name="recurrenceType" value="SPECIFIC_DAYS"
+                                           class="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500">
+                                    <div class="ml-3">
+                                        <div class="font-medium text-gray-900">Specific days</div>
+                                        <div class="text-sm text-gray-500">Choose which days of the week</div>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Specific Days (hidden by default) -->
+                        <div id="specificDaysConfig" class="hidden p-4 bg-gray-50 rounded-md">
+                            <label class="block text-sm font-medium text-gray-700 mb-3">Select days *</label>
+                            <div class="grid grid-cols-2 gap-2">
+                                <label class="flex items-center cursor-pointer">
+                                    <input type="checkbox" name="specificDays" value="MONDAY" class="h-4 w-4 text-blue-600 focus:ring-blue-500 rounded">
+                                    <span class="ml-2 text-sm text-gray-700">Monday</span>
+                                </label>
+                                <label class="flex items-center cursor-pointer">
+                                    <input type="checkbox" name="specificDays" value="TUESDAY" class="h-4 w-4 text-blue-600 focus:ring-blue-500 rounded">
+                                    <span class="ml-2 text-sm text-gray-700">Tuesday</span>
+                                </label>
+                                <label class="flex items-center cursor-pointer">
+                                    <input type="checkbox" name="specificDays" value="WEDNESDAY" class="h-4 w-4 text-blue-600 focus:ring-blue-500 rounded">
+                                    <span class="ml-2 text-sm text-gray-700">Wednesday</span>
+                                </label>
+                                <label class="flex items-center cursor-pointer">
+                                    <input type="checkbox" name="specificDays" value="THURSDAY" class="h-4 w-4 text-blue-600 focus:ring-blue-500 rounded">
+                                    <span class="ml-2 text-sm text-gray-700">Thursday</span>
+                                </label>
+                                <label class="flex items-center cursor-pointer">
+                                    <input type="checkbox" name="specificDays" value="FRIDAY" class="h-4 w-4 text-blue-600 focus:ring-blue-500 rounded">
+                                    <span class="ml-2 text-sm text-gray-700">Friday</span>
+                                </label>
+                                <label class="flex items-center cursor-pointer">
+                                    <input type="checkbox" name="specificDays" value="SATURDAY" class="h-4 w-4 text-blue-600 focus:ring-blue-500 rounded">
+                                    <span class="ml-2 text-sm text-gray-700">Saturday</span>
+                                </label>
+                                <label class="flex items-center cursor-pointer">
+                                    <input type="checkbox" name="specificDays" value="SUNDAY" class="h-4 w-4 text-blue-600 focus:ring-blue-500 rounded">
+                                    <span class="ml-2 text-sm text-gray-700">Sunday</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Start Date -->
+                        <div>
+                            <label for="startDate" class="block text-sm font-medium text-gray-700 mb-2">Start Date</label>
+                            <input type="date" id="startDate" name="startDate"
+                                   class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        </div>
+                    </div>
+
+                    <!-- Error Message -->
+                    <div id="modalErrorMessage" class="hidden mt-4 p-4 bg-red-50 border border-red-200 rounded-md">
+                        <p class="text-red-800"></p>
+                    </div>
+
+                    <!-- Actions -->
+                    <div class="mt-6 flex justify-end space-x-4">
+                        <button type="button" onclick="closeStartRoutineModal()" class="px-6 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50">
+                            Cancel
+                        </button>
+                        <button type="submit" class="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
+                            Start Routine
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let habits = [];
+
+        // Set today's date as default
+        document.getElementById('startDate').valueAsDate = new Date();
+
+        // Toggle specific days visibility
+        document.querySelectorAll('input[name="recurrenceType"]').forEach(radio => {
+            radio.addEventListener('change', function() {
+                const specificDaysConfig = document.getElementById('specificDaysConfig');
+                if (this.value === 'SPECIFIC_DAYS') {
+                    specificDaysConfig.classList.remove('hidden');
+                } else {
+                    specificDaysConfig.classList.add('hidden');
+                }
+            });
+        });
+
+        // Load habits
+        async function loadHabits() {
+            try {
+                const practitionerId = getCurrentPractitionerId();
+                if (!practitionerId) {
+                    showError('Please set up your account first. Practitioner ID not found.');
+                    return;
+                }
+
+                const response = await fetch(`/api/habits?practitionerId=${practitionerId}`);
+                if (response.ok) {
+                    habits = await response.json();
+                    displayHabits(habits);
+                } else {
+                    showError('Failed to load habits');
+                }
+            } catch (error) {
+                showError('Network error: ' + error.message);
+            }
+        }
+
+        function displayHabits(habits) {
+            const loadingState = document.getElementById('loadingState');
+            const emptyState = document.getElementById('emptyState');
+            const habitsGrid = document.getElementById('habitsGrid');
+
+            loadingState.classList.add('hidden');
+
+            if (habits.length === 0) {
+                emptyState.classList.remove('hidden');
+                habitsGrid.classList.add('hidden');
+            } else {
+                emptyState.classList.add('hidden');
+                habitsGrid.classList.remove('hidden');
+                habitsGrid.innerHTML = habits.map(habit => createHabitCard(habit)).join('');
+            }
+        }
+
+        function createHabitCard(habit) {
+            const trackingBadge = habit.trackingType === 'NUMERIC'
+                ? `<span class="px-2 py-1 bg-purple-100 text-purple-800 text-xs rounded-full">${habit.numericUnit || 'Numeric'}</span>`
+                : `<span class="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">Yes/No</span>`;
+
+            const visibilityBadge = habit.isPublic
+                ? `<span class="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">Public</span>`
+                : habit.isPrivate
+                ? `<span class="px-2 py-1 bg-gray-100 text-gray-800 text-xs rounded-full">Private</span>`
+                : '';
+
+            return `
+                <div class="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition">
+                    <div class="flex justify-between items-start mb-4">
+                        <h3 class="text-xl font-semibold text-gray-900">${habit.name}</h3>
+                        <div class="flex space-x-2">
+                            ${trackingBadge}
+                            ${visibilityBadge}
+                        </div>
+                    </div>
+                    <p class="text-gray-600 text-sm mb-4">${habit.description || 'No description'}</p>
+                    <div class="flex justify-end space-x-2">
+                        <button onclick="openStartRoutineModal('${habit.id}', '${habit.name}')"
+                                class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-sm">
+                            Start Routine
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function openStartRoutineModal(habitId, habitName) {
+            document.getElementById('selectedHabitId').value = habitId;
+            document.getElementById('selectedHabitName').value = habitName;
+            document.getElementById('startRoutineModal').classList.remove('hidden');
+        }
+
+        function closeStartRoutineModal() {
+            document.getElementById('startRoutineModal').classList.add('hidden');
+            document.getElementById('startRoutineForm').reset();
+            document.getElementById('modalErrorMessage').classList.add('hidden');
+        }
+
+        // Start routine form submission
+        document.getElementById('startRoutineForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const formData = new FormData(e.target);
+            const recurrenceType = formData.get('recurrenceType');
+
+            const specificDays = recurrenceType === 'SPECIFIC_DAYS'
+                ? Array.from(formData.getAll('specificDays'))
+                : null;
+
+            const data = {
+                practitionerId: getCurrentPractitionerId(),
+                habitId: document.getElementById('selectedHabitId').value,
+                recurrenceType: recurrenceType,
+                specificDays: specificDays,
+                nthDay: null,
+                nthWeek: null,
+                startDate: formData.get('startDate') || null
+            };
+
+            try {
+                const response = await fetch('/api/routines', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                if (response.ok) {
+                    closeStartRoutineModal();
+                    window.location.href = '/habits/dashboard';
+                } else {
+                    const error = await response.text();
+                    showModalError(error || 'Failed to start routine');
+                }
+            } catch (error) {
+                showModalError('Network error: ' + error.message);
+            }
+        });
+
+        function showError(message) {
+            alert(message);
+        }
+
+        function showModalError(message) {
+            const errorDiv = document.getElementById('modalErrorMessage');
+            errorDiv.querySelector('p').textContent = message;
+            errorDiv.classList.remove('hidden');
+        }
+
+        // Load habits on page load
+        loadHabits();
+    </script>
+</body>
+</html>
