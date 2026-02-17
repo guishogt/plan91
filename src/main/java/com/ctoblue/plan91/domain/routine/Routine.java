@@ -84,8 +84,8 @@ public class Routine {
         this.expectedEndDate = Objects.requireNonNull(expectedEndDate, "ExpectedEndDate cannot be null");
 
         long daysBetween = ChronoUnit.DAYS.between(startDate, expectedEndDate);
-        if (daysBetween != 91) {
-            throw new IllegalArgumentException("ExpectedEndDate must be 91 days after startDate, got: " + daysBetween);
+        if (daysBetween != 90) {
+            throw new IllegalArgumentException("ExpectedEndDate must be 90 days after startDate (91 days total), got: " + daysBetween);
         }
 
         this.completedAt = completedAt;
@@ -116,7 +116,7 @@ public class Routine {
                 practitionerId,
                 recurrenceRule,
                 startDate,
-                startDate.plusDays(91),
+                startDate.plusDays(90),  // 91 days total (day 0 to day 90 inclusive)
                 null,
                 HabitStreak.initial(),
                 RoutineStatus.ACTIVE,
@@ -156,8 +156,8 @@ public class Routine {
         streak = streak.incrementStreak(date);
         updatedAt = Instant.now();
 
-        // Check if completed 91 days
-        if (!date.isBefore(expectedEndDate)) {
+        // Check if completed 91 days (based on total completions, not calendar date)
+        if (streak.totalCompletions() >= 91) {
             status = RoutineStatus.COMPLETED;
             completedAt = date;
         }
