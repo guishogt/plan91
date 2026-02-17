@@ -6,8 +6,18 @@ let completedRoutineIds = new Set();
 
 // Date navigation - allow viewing up to 5 days back
 let selectedDate = new Date();
+selectedDate.setHours(0, 0, 0, 0); // Normalize to midnight
 const today = new Date();
+today.setHours(0, 0, 0, 0); // Normalize to midnight
 const maxDaysBack = 5;
+
+// Helper to get local date string (YYYY-MM-DD) without timezone issues
+function toLocalDateString(date) {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+}
 
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', async () => {
@@ -49,10 +59,10 @@ function updateDateDisplay() {
 
     if (!dateDisplay) return;
 
-    const todayStr = today.toISOString().split('T')[0];
-    const selectedStr = selectedDate.toISOString().split('T')[0];
+    const todayStr = toLocalDateString(today);
+    const selectedStr = toLocalDateString(selectedDate);
 
-    // Calculate days difference
+    // Calculate days difference (dates are normalized to midnight)
     const diffDays = Math.round((today - selectedDate) / (1000 * 60 * 60 * 24));
 
     if (diffDays === 0) {
@@ -76,7 +86,7 @@ function updateDateDisplay() {
 }
 
 function getSelectedDateString() {
-    return selectedDate.toISOString().split('T')[0];
+    return toLocalDateString(selectedDate);
 }
 
 async function loadDashboardData() {
@@ -173,7 +183,7 @@ function createRoutineCard(routine, index) {
     const completedOnSelectedDate = completedRoutineIds.has(routine.id);
 
     // Check if viewing today
-    const isViewingToday = selectedDateStr === today.toISOString().split('T')[0];
+    const isViewingToday = selectedDateStr === toLocalDateString(today);
 
     // Rotate colors for variety
     const borderColors = ['border-primary-500', 'border-warning-500', 'border-success-500', 'border-purple-500'];
