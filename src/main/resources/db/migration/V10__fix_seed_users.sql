@@ -1,8 +1,22 @@
 -- V10: Fix seed users with valid BCrypt hashes
 -- This fixes V9 which had an invalid hash
 
--- Delete any existing seed users (they have invalid hashes)
+-- Delete any existing seed users and their data (cascade delete in correct order)
+-- 1. Delete habit_entries for routines owned by these practitioners
+DELETE he FROM habit_entries he
+INNER JOIN routines r ON he.routine_id = r.id
+INNER JOIN habit_practitioners hp ON r.practitioner_id = hp.id
+WHERE hp.email IN ('admin', 'luis@fernandezgt.com');
+
+-- 2. Delete routines owned by these practitioners
+DELETE r FROM routines r
+INNER JOIN habit_practitioners hp ON r.practitioner_id = hp.id
+WHERE hp.email IN ('admin', 'luis@fernandezgt.com');
+
+-- 3. Delete the practitioners
 DELETE FROM habit_practitioners WHERE email IN ('admin', 'luis@fernandezgt.com');
+
+-- 4. Delete the users
 DELETE FROM users WHERE email IN ('admin', 'luis@fernandezgt.com');
 
 -- Insert admin user with valid hash (password: admin)
