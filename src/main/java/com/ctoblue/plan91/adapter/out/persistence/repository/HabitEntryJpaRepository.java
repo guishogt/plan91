@@ -101,4 +101,13 @@ public interface HabitEntryJpaRepository extends JpaRepository<HabitEntryEntity,
      * @return list of entries
      */
     List<HabitEntryEntity> findByRoutineIdIn(List<UUID> routineIds);
+
+    /**
+     * Finds all entries for multiple routines on a specific date.
+     *
+     * @param routineIds the list of routine IDs
+     * @param date the date
+     * @return list of entries
+     */
+    List<HabitEntryEntity> findByRoutineIdInAndDate(List<UUID> routineIds, LocalDate date);
 }

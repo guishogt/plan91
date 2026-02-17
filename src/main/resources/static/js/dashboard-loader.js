@@ -2,6 +2,12 @@
 let practitionerId;
 let routines = [];
 let statistics = null;
+let completedRoutineIds = new Set();
+
+// Date navigation - allow viewing up to 5 days back
+let selectedDate = new Date();
+const today = new Date();
+const maxDaysBack = 5;
 
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', async () => {
@@ -11,8 +17,67 @@ document.addEventListener('DOMContentLoaded', async () => {
         return;
     }
 
+    updateDateDisplay();
     await loadDashboardData();
 });
+
+// Date navigation functions
+function goToPreviousDay() {
+    const minDate = new Date(today);
+    minDate.setDate(minDate.getDate() - maxDaysBack);
+
+    if (selectedDate > minDate) {
+        selectedDate.setDate(selectedDate.getDate() - 1);
+        updateDateDisplay();
+        updateRoutinesList();
+    }
+}
+
+function goToNextDay() {
+    if (selectedDate < today) {
+        selectedDate.setDate(selectedDate.getDate() + 1);
+        updateDateDisplay();
+        updateRoutinesList();
+    }
+}
+
+function updateDateDisplay() {
+    const dateDisplay = document.getElementById('selectedDateDisplay');
+    const dateFull = document.getElementById('selectedDateFull');
+    const prevBtn = document.getElementById('prevDayBtn');
+    const nextBtn = document.getElementById('nextDayBtn');
+
+    if (!dateDisplay) return;
+
+    const todayStr = today.toISOString().split('T')[0];
+    const selectedStr = selectedDate.toISOString().split('T')[0];
+
+    // Calculate days difference
+    const diffDays = Math.round((today - selectedDate) / (1000 * 60 * 60 * 24));
+
+    if (diffDays === 0) {
+        dateDisplay.textContent = 'Today';
+    } else if (diffDays === 1) {
+        dateDisplay.textContent = 'Yesterday';
+    } else {
+        dateDisplay.textContent = `${diffDays} days ago`;
+    }
+
+    // Show full date
+    const options = { weekday: 'long', month: 'long', day: 'numeric' };
+    dateFull.textContent = selectedDate.toLocaleDateString('en-US', options);
+
+    // Update button states
+    const minDate = new Date(today);
+    minDate.setDate(minDate.getDate() - maxDaysBack);
+
+    if (prevBtn) prevBtn.disabled = selectedDate <= minDate;
+    if (nextBtn) nextBtn.disabled = selectedDate >= today;
+}
+
+function getSelectedDateString() {
+    return selectedDate.toISOString().split('T')[0];
+}
 
 async function loadDashboardData() {
     try {
@@ -56,7 +121,7 @@ function updateStatsCards() {
     }
 }
 
-function updateRoutinesList() {
+async function updateRoutinesList() {
     const routinesContainer = document.getElementById('routines-container');
     if (!routinesContainer) return;
 
@@ -79,6 +144,21 @@ function updateRoutinesList() {
         return;
     }
 
+    // Fetch which routines are completed for the selected date
+    const routineIds = routines.map(r => r.id).join(',');
+    const dateStr = getSelectedDateString();
+
+    try {
+        const response = await secureFetch(`/api/entries/completed-routines?routineIds=${routineIds}&date=${dateStr}`);
+        if (response.ok) {
+            const completedIds = await response.json();
+            completedRoutineIds = new Set(completedIds);
+        }
+    } catch (error) {
+        console.error('Error fetching completed routines:', error);
+        completedRoutineIds = new Set();
+    }
+
     routinesContainer.innerHTML = routines.map((routine, index) => createRoutineCard(routine, index)).join('');
 }
 
@@ -88,9 +168,12 @@ function createRoutineCard(routine, index) {
     const progressPercent = Math.min(((routine.totalCompletions / targetDays) * 100), 100).toFixed(0);
     const daysRemaining = targetDays - routine.totalCompletions;
 
-    // Check if completed today
-    const today = new Date().toISOString().split('T')[0];
-    const completedToday = routine.lastCompletionDate === today;
+    // Check if completed on the selected date using the fetched completedRoutineIds
+    const selectedDateStr = getSelectedDateString();
+    const completedOnSelectedDate = completedRoutineIds.has(routine.id);
+
+    // Check if viewing today
+    const isViewingToday = selectedDateStr === today.toISOString().split('T')[0];
 
     // Rotate colors for variety
     const borderColors = ['border-primary-500', 'border-warning-500', 'border-success-500', 'border-purple-500'];
@@ -148,12 +231,12 @@ function createRoutineCard(routine, index) {
                     </div>
                 </div>
                 <div class="routine-buttons">
-                    ${completedToday ? `
+                    ${completedOnSelectedDate ? `
                         <button disabled
                                 class="text-white text-base px-6 py-3 whitespace-nowrap rounded-lg shadow-md font-semibold opacity-90 cursor-not-allowed"
                                 style="background: linear-gradient(to right, #059669, #047857);"
                                 id="complete-btn-${routine.id}">
-                            ✓ Done Today!
+                            ✓ ${isViewingToday ? 'Done Today!' : 'Done!'}
                         </button>
                     ` : `
                         <button onclick="openCompleteEntryModal('${routine.id}', '${escapeHtml(routine.habitName)}', '${routine.trackingType || 'BOOLEAN'}', '${escapeHtml(routine.numericUnit || '')}', this)"
@@ -333,7 +416,7 @@ function createCompleteEntryModal() {
 
         const data = {
             routineId: document.getElementById('selectedRoutineId').value,
-            date: new Date().toISOString().split('T')[0],
+            date: getSelectedDateString(),
             value: trackingType === 'NUMERIC' ? parseInt(formData.get('value')) : null,
             notes: formData.get('notes') || null
         };
@@ -347,23 +430,11 @@ function createCompleteEntryModal() {
             if (response.ok) {
                 // Update the button appearance
                 if (currentCompleteButton) {
-                    currentCompleteButton.innerHTML = '✓ Marked! Well done!';
-                    currentCompleteButton.className = 'text-white text-base px-6 py-3 whitespace-nowrap rounded-lg shadow-md font-semibold';
-                    currentCompleteButton.style.background = 'linear-gradient(to right, #10b981, #059669)';
+                    currentCompleteButton.innerHTML = '✓ Done!';
+                    currentCompleteButton.className = 'text-white text-base px-6 py-3 whitespace-nowrap rounded-lg shadow-md font-semibold opacity-90 cursor-not-allowed';
+                    currentCompleteButton.style.background = 'linear-gradient(to right, #059669, #047857)';
                     currentCompleteButton.disabled = true;
-
-                    // Reset after 2 seconds
-                    setTimeout(() => {
-                        if (currentCompleteButton) {
-                            currentCompleteButton.innerHTML = '✓ Mark Complete';
-                            currentCompleteButton.className = 'text-base px-6 py-3 whitespace-nowrap rounded-lg font-semibold transition-colors duration-200';
-                            currentCompleteButton.style.backgroundColor = '#10b981';
-                            currentCompleteButton.style.color = 'white';
-                            currentCompleteButton.onmouseover = () => currentCompleteButton.style.backgroundColor = '#059669';
-                            currentCompleteButton.onmouseout = () => currentCompleteButton.style.backgroundColor = '#10b981';
-                            currentCompleteButton.disabled = false;
-                        }
-                    }, 2000);
+                    // Keep button in done state - no reset needed
                 }
 
                 closeCompleteEntryModal();
@@ -375,7 +446,7 @@ function createCompleteEntryModal() {
 
                 // Show friendly message for already completed
                 if (errorMessage.includes('Already completed')) {
-                    errorMessage = '✓ Great! You already marked this complete today!';
+                    errorMessage = '✓ Great! You already marked this complete for this day!';
                 }
 
                 showModalError(errorMessage);
