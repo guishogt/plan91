@@ -264,8 +264,11 @@ function createRoutineCard(routine, index) {
                         View Details
                     </a>
                     <button onclick="openEditRoutineModal('${routine.id}', '${escapeHtml(routine.habitName)}', '${routine.recurrenceType}', '${routine.startDate}', ${routine.targetDays})"
-                            class="text-center px-4 py-3 border border-gray-400 text-gray-600 rounded-md hover:bg-gray-100 text-sm whitespace-nowrap">
-                        Edit
+                            class="text-gray-400 hover:text-gray-600 p-2"
+                            title="Edit routine">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path>
+                        </svg>
                     </button>
                 </div>
             </div>
