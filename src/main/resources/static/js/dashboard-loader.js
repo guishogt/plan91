@@ -263,6 +263,10 @@ function createRoutineCard(routine, index) {
                        class="text-center px-6 py-3 border border-blue-600 text-blue-600 rounded-md hover:bg-blue-50 text-sm whitespace-nowrap">
                         View Details
                     </a>
+                    <button onclick="openEditRoutineModal('${routine.id}', '${escapeHtml(routine.habitName)}', '${routine.recurrenceType}', '${routine.startDate}', ${routine.targetDays})"
+                            class="text-center px-4 py-3 border border-gray-400 text-gray-600 rounded-md hover:bg-gray-100 text-sm whitespace-nowrap">
+                        Edit
+                    </button>
                 </div>
             </div>
         </div>

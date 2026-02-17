@@ -8,6 +8,7 @@ package com.ctoblue.plan91.domain.routine;
  *   <li>PAUSED - Temporarily paused</li>
  *   <li>COMPLETED - Successfully finished 91 days</li>
  *   <li>ABANDONED - Gave up or streak broken (two misses)</li>
+ *   <li>ARCHIVED - User manually archived the routine</li>
  * </ul>
  */
 public enum RoutineStatus {
@@ -33,5 +34,11 @@ public enum RoutineStatus {
      * Gave up or broke the routine (two misses with one-strike rule).
      * User can start a new routine for the same habit if desired.
      */
-    ABANDONED
+    ABANDONED,
+
+    /**
+     * User manually archived the routine.
+     * Can be used to hide routines without deleting them.
+     */
+    ARCHIVED
 }
