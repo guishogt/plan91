@@ -7,15 +7,16 @@ This file tells agents what to work on and provides necessary context.
 (Path: `/epics/01-domain-model/EPIC.md`)
 
 ## Current Ticket
-**PLAN91-010** - Create Habit aggregate with public/private logic
-(Path: `/epics/01-domain-model/tickets/PLAN91-010.md`)
+**PLAN91-011** - Create Routine aggregate with streak tracking
+(Path: `/epics/01-domain-model/tickets/PLAN91-011.md`)
 
 **Status**: Ready to start
-**What to do**: Implement Habit aggregate with tracking types, public/private, and copying logic
+**What to do**: Implement Routine aggregate with 91-day cycle, streak tracking, and one-strike rule
 
 **Epic 00 Complete!** 🎉 All setup and documentation finished.
 **PLAN91-008 Complete!** ✅ All 6 value objects created with 72 passing tests.
 **PLAN91-009 Complete!** ✅ HabitPractitioner aggregate with 24 passing tests.
+**PLAN91-010 Complete!** ✅ Habit aggregate with NumericConfig and 44 passing tests.
 **Renamed**: HabitTracker → HabitPractitioner (v1.1)
 
 ## Instructions for AI Agents
@@ -52,6 +53,7 @@ When starting work:
 ### Epic 01: Domain Model with Standalone Testing 🔄 IN PROGRESS
 - ✅ PLAN91-008: Create Value Objects (HabitPractitionerId, Email, HabitId, etc.) (2026-01-30)
 - ✅ PLAN91-009: Create HabitPractitioner aggregate (2026-01-30)
+- ✅ PLAN91-010: Create Habit aggregate with public/private logic (2026-01-30)
 
 ## Notes
 - All ticket numbers are sequential (001, 002, 003...) across all epics
