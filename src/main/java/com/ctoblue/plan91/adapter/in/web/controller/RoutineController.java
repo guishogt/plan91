@@ -17,6 +17,7 @@ import jakarta.validation.Valid;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.Instant;
@@ -87,6 +88,7 @@ public class RoutineController {
      * @return the updated routine
      */
     @PutMapping("/{id}")
+    @Transactional
     public ResponseEntity<RoutineDto> updateRoutine(
             @PathVariable String id,
             @Valid @RequestBody UpdateRoutineRequest request) {
@@ -127,6 +129,7 @@ public class RoutineController {
      * @return 204 No Content on success
      */
     @PostMapping("/{id}/archive")
+    @Transactional
     public ResponseEntity<Void> archiveRoutine(@PathVariable String id) {
         UUID routineId = UUID.fromString(id);
         RoutineEntity routine = routineRepository.findById(routineId)
