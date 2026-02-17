@@ -189,6 +189,13 @@ function createNewRoutineModal() {
                             </select>
                         </div>
 
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Duration (days) *</label>
+                            <input type="number" id="routineTargetDays" required min="1" max="365" value="91"
+                                   class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-transparent">
+                            <p class="text-xs text-gray-500 mt-1">How many completions to finish this routine (default: 91)</p>
+                        </div>
+
                         <div id="routineCreateError" class="hidden p-4 bg-red-50 border border-red-200 rounded-md">
                             <p class="text-red-800"></p>
                         </div>
@@ -300,7 +307,8 @@ async function handleStartRoutine(e) {
         practitionerId: modalPractitionerId,
         habitId: selectedHabitId,
         startDate: document.getElementById('routineStartDate').value,
-        recurrenceType: document.getElementById('routineRecurrence').value
+        recurrenceType: document.getElementById('routineRecurrence').value,
+        targetDays: parseInt(document.getElementById('routineTargetDays').value) || 91
     };
 
     try {

@@ -20,6 +20,7 @@ public record RoutineDto(
         Set<String> specificDays,
         String nthDay,
         Integer nthWeek,
+        int targetDays,
         LocalDate startDate,
         LocalDate expectedEndDate,
         RoutineStatus status,

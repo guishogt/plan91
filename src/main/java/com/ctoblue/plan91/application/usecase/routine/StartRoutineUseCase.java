@@ -72,7 +72,8 @@ public class StartRoutineUseCase {
                 new HabitId(habitId),
                 new HabitPractitionerId(practitionerId),
                 recurrenceRule,
-                command.startDate()
+                command.startDate(),
+                command.targetDays()
         );
 
         // 5. Convert to entity using mapper

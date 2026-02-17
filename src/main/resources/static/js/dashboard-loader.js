@@ -84,8 +84,9 @@ function updateRoutinesList() {
 
 function createRoutineCard(routine, index) {
     const daysElapsed = Math.floor((new Date() - new Date(routine.startDate)) / (1000 * 60 * 60 * 24));
-    const progressPercent = Math.min(((routine.totalCompletions / 91) * 100), 100).toFixed(0);
-    const daysRemaining = 91 - routine.totalCompletions;
+    const targetDays = routine.targetDays || 91;
+    const progressPercent = Math.min(((routine.totalCompletions / targetDays) * 100), 100).toFixed(0);
+    const daysRemaining = targetDays - routine.totalCompletions;
 
     // Check if completed today
     const today = new Date().toISOString().split('T')[0];
@@ -126,7 +127,7 @@ function createRoutineCard(routine, index) {
                     <div class="mb-4">
                         <div class="flex justify-between text-sm mb-2">
                             <span class="text-gray-700 font-medium">Progress</span>
-                            <span class="text-gray-900 font-bold">${routine.totalCompletions}/91 days (${progressPercent}%)</span>
+                            <span class="text-gray-900 font-bold">${routine.totalCompletions}/${targetDays} days (${progressPercent}%)</span>
                         </div>
                         <div class="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
                             <div class="bg-gradient-to-r ${gradientColor} h-3 rounded-full shadow-sm transition-all duration-500" style="width: ${progressPercent}%"></div>

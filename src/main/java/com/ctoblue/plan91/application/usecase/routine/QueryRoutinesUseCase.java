@@ -81,16 +81,16 @@ public class QueryRoutinesUseCase {
     }
 
     /**
-     * Gets a routine by ID.
+     * Gets a routine by ID with relationships eagerly loaded.
      *
      * @param routineId the routine's ID
-     * @return the routine entity
+     * @return the routine entity with habit and practitioner loaded
      * @throws IllegalArgumentException if routine not found
      */
     @Transactional(readOnly = true)
     public RoutineEntity getRoutineById(String routineId) {
         UUID id = UUID.fromString(routineId);
-        return routineRepository.findById(id)
+        return routineRepository.findByIdWithRelations(id)
                 .orElseThrow(() -> new IllegalArgumentException("Routine not found: " + routineId));
     }
 }

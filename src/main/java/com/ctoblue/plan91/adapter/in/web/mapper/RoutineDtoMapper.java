@@ -29,6 +29,7 @@ public interface RoutineDtoMapper {
     @Mapping(target = "specificDays", expression = "java(parseSpecificDays(entity.getRecurrenceRule().getSpecificDays()))")
     @Mapping(target = "nthDay", source = "recurrenceRule.nthDay")
     @Mapping(target = "nthWeek", source = "recurrenceRule.nthWeek")
+    @Mapping(target = "targetDays", source = "targetDays")
     @Mapping(target = "currentStreak", source = "streak.currentStreak")
     @Mapping(target = "longestStreak", source = "streak.longestStreak")
     @Mapping(target = "totalCompletions", source = "streak.totalCompletions")

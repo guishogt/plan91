@@ -23,7 +23,7 @@
                 </svg>
             </button>
             <div class="hidden md:flex space-x-4">
-                <a href="/habits/dashboard" class="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium">Dashboard</a>
+                <a href="/dashboard" class="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium">Dashboard</a>
                 <a href="/habits" class="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium">My Habits</a>
                 <a href="/habits/browse" class="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium">Browse</a>
                 <a href="/habits/create" class="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium">Create</a>
@@ -34,7 +34,7 @@
     <!-- Mobile menu -->
     <div id="mobile-menu" class="hidden md:hidden">
         <div class="px-2 pt-2 pb-3 space-y-1">
-            <a href="/habits/dashboard" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-gray-100">Dashboard</a>
+            <a href="/dashboard" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-gray-100">Dashboard</a>
             <a href="/habits" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-gray-100">My Habits</a>
             <a href="/habits/browse" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-gray-100">Browse</a>
             <a href="/habits/create" class="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-gray-100">Create</a>
@@ -48,7 +48,7 @@
     <!-- Header -->
     <div class="mb-6">
         <div class="flex items-center gap-2 mb-2">
-            <a href="/habits/dashboard" class="text-blue-600 hover:text-blue-800">← Back to Dashboard</a>
+            <a href="/dashboard" class="text-blue-600 hover:text-blue-800">← Back to Dashboard</a>
         </div>
         <h2 id="routine-title" class="text-3xl font-bold text-gray-900">Loading...</h2>
         <p id="routine-description" class="text-gray-600 mt-1"></p>
@@ -83,7 +83,7 @@
 
     if (!routineId) {
         alert('No routine ID provided');
-        window.location.href = '/habits/dashboard';
+        window.location.href = '/dashboard';
     }
 
     // Load routine details
