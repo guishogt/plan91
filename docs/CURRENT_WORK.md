@@ -7,14 +7,15 @@ This file tells agents what to work on and provides necessary context.
 (Path: `/epics/01-domain-model/EPIC.md`)
 
 ## Current Ticket
-**PLAN91-009** - Create HabitTracker aggregate
+**PLAN91-009** - Create HabitPractitioner aggregate
 (Path: `/epics/01-domain-model/tickets/PLAN91-009.md`)
 
 **Status**: Ready to start
-**What to do**: Implement HabitTracker aggregate with properties and validation
+**What to do**: Implement HabitPractitioner aggregate with properties and validation
 
 **Epic 00 Complete!** 🎉 All setup and documentation finished.
 **PLAN91-008 Complete!** ✅ All 6 value objects created with 72 passing tests.
+**Renamed**: HabitTracker → HabitPractitioner (v1.1)
 
 ## Instructions for AI Agents
 
@@ -48,7 +49,7 @@ When starting work:
 - ✅ PLAN91-007: Set up logging configuration (2026-01-29)
 
 ### Epic 01: Domain Model with Standalone Testing 🔄 IN PROGRESS
-- ✅ PLAN91-008: Create Value Objects (HabitTrackerId, Email, HabitId, etc.) (2026-01-30)
+- ✅ PLAN91-008: Create Value Objects (HabitPractitionerId, Email, HabitId, etc.) (2026-01-30)
 
 ## Notes
 - All ticket numbers are sequential (001, 002, 003...) across all epics

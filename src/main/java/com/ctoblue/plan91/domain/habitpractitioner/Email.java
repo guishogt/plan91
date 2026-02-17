@@ -1,4 +1,4 @@
-package com.ctoblue.plan91.domain.habittracker;
+package com.ctoblue.plan91.domain.habitpractitioner;
 
 /**
  * Value object representing a validated email address.

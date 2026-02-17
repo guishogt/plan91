@@ -1,4 +1,4 @@
-# Plan 91 - Domain Model (Conceptual Draft)
+So# Plan 91 - Domain Model (Conceptual Draft)
 
 **Status**: 🔄 Draft for Discussion
 **Version**: 0.1
@@ -35,7 +35,7 @@
 
 ---
 
-## Entity Details
+## Entity Deta
 
 ### 1. User
 

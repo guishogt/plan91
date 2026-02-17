@@ -22,7 +22,7 @@ This epic implements the core domain model based on the approved DOMAIN-SCHEMA.m
 ## Domain Model Overview
 
 ```
-HabitTracker (The Person)
+HabitPractitioner (The Person)
     ↓ creates
 Habit (The Definition)
     ↓ used in
@@ -64,8 +64,8 @@ HabitEntry (Individual Completion)
 
 | Ticket | Title | Status | Effort |
 |--------|-------|--------|--------|
-| PLAN91-008 | Create Value Objects (HabitTrackerId, Email, HabitId, RoutineId, etc.) | ✅ Complete | Medium |
-| PLAN91-009 | Create HabitTracker aggregate | ⏳ Pending | Medium |
+| PLAN91-008 | Create Value Objects (HabitPractitionerId, Email, HabitId, RoutineId, etc.) | ✅ Complete | Medium |
+| PLAN91-009 | Create HabitPractitioner aggregate | ⏳ Pending | Medium |
 | PLAN91-010 | Create Habit aggregate with public/private logic | ⏳ Pending | Medium |
 | PLAN91-011 | Create Routine aggregate with streak tracking | ⏳ Pending | Large |
 | PLAN91-012 | Create HabitEntry entity | ⏳ Pending | Small |
@@ -84,7 +84,7 @@ HabitEntry (Individual Completion)
 ## Deliverables
 
 1. **Value Objects** (Immutable, validated)
-   - HabitTrackerId
+   - HabitPractitionerId
    - Email
    - HabitId
    - RoutineId
@@ -95,7 +95,7 @@ HabitEntry (Individual Completion)
    - NumericConfig
 
 2. **Aggregates**
-   - HabitTracker (root)
+   - HabitPractitioner (root)
    - Habit (root)
    - Routine (root)
 
@@ -107,7 +107,7 @@ HabitEntry (Individual Completion)
    - RecurrenceEvaluationService
 
 5. **Repository Interfaces** (Ports)
-   - HabitTrackerRepository
+   - HabitPractitionerRepository
    - HabitRepository
    - RoutineRepository
    - HabitEntryRepository
@@ -118,11 +118,11 @@ HabitEntry (Individual Completion)
 
 ```
 src/main/java/com/ctoblue/plan91/domain/
-├── habittracker/
-│   ├── HabitTracker.java
-│   ├── HabitTrackerId.java
+├── habitpractitioner/
+│   ├── HabitPractitioner.java
+│   ├── HabitPractitionerId.java
 │   ├── Email.java
-│   └── HabitTrackerRepository.java
+│   └── HabitPractitionerRepository.java
 ├── habit/
 │   ├── Habit.java
 │   ├── HabitId.java
