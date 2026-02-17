@@ -13,10 +13,15 @@ DELETE r FROM routines r
 INNER JOIN habit_practitioners hp ON r.practitioner_id = hp.id
 WHERE hp.email IN ('admin', 'luis@fernandezgt.com');
 
--- 3. Delete the practitioners
+-- 3. Delete habits created by these practitioners
+DELETE h FROM habits h
+INNER JOIN habit_practitioners hp ON h.creator_id = hp.id
+WHERE hp.email IN ('admin', 'luis@fernandezgt.com');
+
+-- 4. Delete the practitioners
 DELETE FROM habit_practitioners WHERE email IN ('admin', 'luis@fernandezgt.com');
 
--- 4. Delete the users
+-- 5. Delete the users
 DELETE FROM users WHERE email IN ('admin', 'luis@fernandezgt.com');
 
 -- Insert admin user with valid hash (password: admin)
