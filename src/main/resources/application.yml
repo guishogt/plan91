@@ -34,6 +34,11 @@ spring:
 # Server Configuration
 server:
   port: 8080
+  servlet:
+    session:
+      timeout: 7d  # 7 days session for mobile users
+      cookie:
+        same-site: lax  # Allow cross-site requests (mobile)
 
 # Actuator endpoints
 management:

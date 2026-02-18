@@ -63,6 +63,11 @@ public class SecurityConfig {
                 .logoutSuccessUrl("/login?logout")  // Redirect to login with logout message
                 .permitAll()
             )
+            .rememberMe(remember -> remember
+                .key("plan91-remember-me-key")  // Secret key for token
+                .tokenValiditySeconds(60 * 60 * 24 * 30)  // 30 days
+                .rememberMeParameter("remember-me")
+            )
             // CSRF enabled - tokens provided via cookie for JavaScript fetch
             .csrf(csrf -> csrf
                 .csrfTokenRepository(org.springframework.security.web.csrf.CookieCsrfTokenRepository.withHttpOnlyFalse())
