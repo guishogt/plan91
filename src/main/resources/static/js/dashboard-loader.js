@@ -232,10 +232,12 @@ function createRoutineCard(routine, index) {
                     </div>
                     ` : `
                     <div class="mb-4">
-                        ${routine.expectedEndDate ? `<p class="text-xs text-gray-500 mb-1">Ends ${formatEndDate(routine.expectedEndDate)}</p>` : ''}
                         <div class="flex justify-between text-sm mb-2">
                             <span class="text-gray-700 font-medium">Progress</span>
-                            <span class="text-gray-900 font-bold">${routine.totalCompletions}/${targetDays} days (${progressPercent}%)</span>
+                            <div class="text-right">
+                                ${routine.expectedEndDate ? `<p class="text-xs text-gray-500">${formatEndDate(routine.expectedEndDate)}</p>` : ''}
+                                <span class="text-gray-900 font-bold">${routine.totalCompletions}/${targetDays} days (${progressPercent}%)</span>
+                            </div>
                         </div>
                         <div class="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
                             <div class="bg-gradient-to-r ${gradientColor} h-3 rounded-full shadow-sm transition-all duration-500" style="width: ${progressPercent}%"></div>
