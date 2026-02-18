@@ -71,6 +71,7 @@ public class StartRoutineUseCase {
         Routine routine = Routine.start(
                 new HabitId(habitId),
                 new HabitPractitionerId(practitionerId),
+                command.routineType(),
                 recurrenceRule,
                 command.startDate(),
                 command.targetDays()

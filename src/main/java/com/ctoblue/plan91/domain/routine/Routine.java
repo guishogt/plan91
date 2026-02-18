@@ -25,13 +25,26 @@ import java.util.Objects;
  *   <li>Routine = YOUR commitment to swimming for N days</li>
  * </ul>
  *
- * <p>Business rules:
+ * <p>Two types of routines:
+ * <ul>
+ *   <li>ROUTINE: Goal-oriented with one-strike rule (default)</li>
+ *   <li>TRACKER: Streak tracking without penalties, runs indefinitely</li>
+ * </ul>
+ *
+ * <p>Business rules for ROUTINE type:
  * <ul>
  *   <li>N-day cycle: Configurable (default 91), fixed from startDate</li>
  *   <li>One-strike rule: First miss uses strike, second abandons</li>
  *   <li>Expected days only: Can only complete on recurrence days</li>
  *   <li>One per day: Cannot complete same day twice</li>
  *   <li>Active only: Can only complete ACTIVE routines</li>
+ * </ul>
+ *
+ * <p>Business rules for TRACKER type:
+ * <ul>
+ *   <li>No target days or end date - runs indefinitely</li>
+ *   <li>No one-strike rule - never abandons</li>
+ *   <li>Tracks streaks and completions normally</li>
  * </ul>
  */
 public class Routine {
@@ -43,14 +56,17 @@ public class Routine {
     private final HabitId habitId;
     private final HabitPractitionerId practitionerId;
 
+    // Type (ROUTINE or TRACKER)
+    private final RoutineType type;
+
     // Recurrence (when is it expected?)
     private final RecurrenceRule recurrenceRule;
 
-    // The N-day cycle (default 91)
-    private final int targetDays;             // How many completions needed (default 91)
+    // The N-day cycle (default 91, null for TRACKER)
+    private final Integer targetDays;         // How many completions needed (null for TRACKER)
     private final LocalDate startDate;        // Immutable
-    private final LocalDate expectedEndDate;  // startDate + (targetDays - 1) days
-    private LocalDate completedAt;            // When reached target days (null if ongoing)
+    private final LocalDate expectedEndDate;  // startDate + (targetDays - 1) days (null for TRACKER)
+    private LocalDate completedAt;            // When reached target days (null if ongoing, always null for TRACKER)
 
     // Streak tracking
     private HabitStreak streak;
@@ -74,8 +90,9 @@ public class Routine {
             RoutineId id,
             HabitId habitId,
             HabitPractitionerId practitionerId,
+            RoutineType type,
             RecurrenceRule recurrenceRule,
-            int targetDays,
+            Integer targetDays,
             LocalDate startDate,
             LocalDate expectedEndDate,
             LocalDate completedAt,
@@ -86,18 +103,26 @@ public class Routine {
         this.id = Objects.requireNonNull(id, "ID cannot be null");
         this.habitId = Objects.requireNonNull(habitId, "HabitId cannot be null");
         this.practitionerId = Objects.requireNonNull(practitionerId, "PractitionerId cannot be null");
+        this.type = Objects.requireNonNull(type, "Type cannot be null");
         this.recurrenceRule = Objects.requireNonNull(recurrenceRule, "RecurrenceRule cannot be null");
         this.startDate = Objects.requireNonNull(startDate, "StartDate cannot be null");
-        this.expectedEndDate = Objects.requireNonNull(expectedEndDate, "ExpectedEndDate cannot be null");
 
-        if (targetDays < 1) {
-            throw new IllegalArgumentException("Target days must be at least 1, got: " + targetDays);
-        }
-        this.targetDays = targetDays;
+        if (type == RoutineType.TRACKER) {
+            // TRACKER: no target days or end date
+            this.targetDays = null;
+            this.expectedEndDate = null;
+        } else {
+            // ROUTINE: requires target days and end date
+            this.expectedEndDate = Objects.requireNonNull(expectedEndDate, "ExpectedEndDate cannot be null for ROUTINE type");
+            if (targetDays == null || targetDays < 1) {
+                throw new IllegalArgumentException("Target days must be at least 1 for ROUTINE type, got: " + targetDays);
+            }
+            this.targetDays = targetDays;
 
-        long daysBetween = ChronoUnit.DAYS.between(startDate, expectedEndDate);
-        if (daysBetween != targetDays - 1) {
-            throw new IllegalArgumentException("ExpectedEndDate must be " + (targetDays - 1) + " days after startDate (" + targetDays + " days total), got: " + daysBetween);
+            long daysBetween = ChronoUnit.DAYS.between(startDate, expectedEndDate);
+            if (daysBetween != targetDays - 1) {
+                throw new IllegalArgumentException("ExpectedEndDate must be " + (targetDays - 1) + " days after startDate (" + targetDays + " days total), got: " + daysBetween);
+            }
         }
 
         this.completedAt = completedAt;
@@ -121,7 +146,7 @@ public class Routine {
             HabitPractitionerId practitionerId,
             RecurrenceRule recurrenceRule,
             LocalDate startDate) {
-        return start(habitId, practitionerId, recurrenceRule, startDate, DEFAULT_TARGET_DAYS);
+        return start(habitId, practitionerId, RoutineType.ROUTINE, recurrenceRule, startDate, DEFAULT_TARGET_DAYS);
     }
 
     /**
@@ -140,20 +165,77 @@ public class Routine {
             RecurrenceRule recurrenceRule,
             LocalDate startDate,
             int targetDays) {
+        return start(habitId, practitionerId, RoutineType.ROUTINE, recurrenceRule, startDate, targetDays);
+    }
 
-        return new Routine(
-                RoutineId.generate(),
-                habitId,
-                practitionerId,
-                recurrenceRule,
-                targetDays,
-                startDate,
-                startDate.plusDays(targetDays - 1),  // targetDays total (day 0 to day targetDays-1 inclusive)
-                null,
-                HabitStreak.initial(),
-                RoutineStatus.ACTIVE,
-                Instant.now()
-        );
+    /**
+     * Factory method to start a new routine or tracker.
+     *
+     * @param habitId the habit to practice
+     * @param practitionerId who is practicing
+     * @param type ROUTINE (goal-oriented) or TRACKER (no penalties)
+     * @param recurrenceRule when to practice
+     * @param startDate when to start
+     * @param targetDays how many completions needed (ignored for TRACKER)
+     * @return a new Routine with ACTIVE status
+     */
+    public static Routine start(
+            HabitId habitId,
+            HabitPractitionerId practitionerId,
+            RoutineType type,
+            RecurrenceRule recurrenceRule,
+            LocalDate startDate,
+            Integer targetDays) {
+
+        if (type == RoutineType.TRACKER) {
+            return new Routine(
+                    RoutineId.generate(),
+                    habitId,
+                    practitionerId,
+                    type,
+                    recurrenceRule,
+                    null,  // no target days
+                    startDate,
+                    null,  // no end date
+                    null,
+                    HabitStreak.initial(),
+                    RoutineStatus.ACTIVE,
+                    Instant.now()
+            );
+        } else {
+            int days = (targetDays != null) ? targetDays : DEFAULT_TARGET_DAYS;
+            return new Routine(
+                    RoutineId.generate(),
+                    habitId,
+                    practitionerId,
+                    type,
+                    recurrenceRule,
+                    days,
+                    startDate,
+                    startDate.plusDays(days - 1),
+                    null,
+                    HabitStreak.initial(),
+                    RoutineStatus.ACTIVE,
+                    Instant.now()
+            );
+        }
+    }
+
+    /**
+     * Factory method to start a new tracker (no penalties, runs indefinitely).
+     *
+     * @param habitId the habit to track
+     * @param practitionerId who is tracking
+     * @param recurrenceRule when to track
+     * @param startDate when to start
+     * @return a new Tracker with ACTIVE status
+     */
+    public static Routine startTracker(
+            HabitId habitId,
+            HabitPractitionerId practitionerId,
+            RecurrenceRule recurrenceRule,
+            LocalDate startDate) {
+        return start(habitId, practitionerId, RoutineType.TRACKER, recurrenceRule, startDate, null);
     }
 
     /**
@@ -189,14 +271,16 @@ public class Routine {
         updatedAt = Instant.now();
 
         // Check if completed target days (based on total completions, not calendar date)
-        if (streak.totalCompletions() >= targetDays) {
+        // TRACKER type never completes - it runs indefinitely
+        if (type == RoutineType.ROUTINE && targetDays != null && streak.totalCompletions() >= targetDays) {
             status = RoutineStatus.COMPLETED;
             completedAt = date;
         }
     }
 
     /**
-     * Records a miss on the given date (one-strike rule).
+     * Records a miss on the given date (one-strike rule for ROUTINE type).
+     * TRACKER type ignores misses - no penalties.
      *
      * @param date the missed date
      */
@@ -207,7 +291,14 @@ public class Routine {
             return; // Only active routines can accumulate misses
         }
 
-        // Only count misses on expected days
+        // TRACKER type has no penalties - just reset current streak but stay active
+        if (type == RoutineType.TRACKER) {
+            streak = streak.resetStreak();
+            updatedAt = Instant.now();
+            return;
+        }
+
+        // Only count misses on expected days (ROUTINE type)
         if (!recurrenceRule.isExpectedOn(date)) {
             return; // Not an expected day, no penalty
         }
@@ -260,29 +351,49 @@ public class Routine {
 
     /**
      * Gets days remaining until expected end date.
+     * Returns null for TRACKER type (no end date).
      *
-     * @return days remaining (can be negative if past end date)
+     * @return days remaining (can be negative if past end date), or null for TRACKER
      */
-    public int getDaysRemaining() {
+    public Integer getDaysRemaining() {
+        if (expectedEndDate == null) {
+            return null; // TRACKER has no end date
+        }
         return (int) ChronoUnit.DAYS.between(LocalDate.now(), expectedEndDate);
     }
 
     /**
      * Gets the target number of completions for this routine.
      *
-     * @return the target days (default 91)
+     * @return the target days (default 91), or null for TRACKER
      */
-    public int getTargetDays() {
+    public Integer getTargetDays() {
         return targetDays;
     }
 
     /**
      * Gets total days in the cycle.
      *
-     * @return the target days
+     * @return the target days, or null for TRACKER
      */
-    public int getTotalDays() {
+    public Integer getTotalDays() {
         return targetDays;
+    }
+
+    /**
+     * Gets the type of this routine.
+     *
+     * @return ROUTINE or TRACKER
+     */
+    public RoutineType getType() {
+        return type;
+    }
+
+    /**
+     * Checks if this is a tracker (no penalties, indefinite).
+     */
+    public boolean isTracker() {
+        return type == RoutineType.TRACKER;
     }
 
     /**
@@ -383,12 +494,16 @@ public class Routine {
 
     @Override
     public String toString() {
+        String daysInfo = (type == RoutineType.TRACKER)
+                ? "tracker"
+                : getDaysRemaining() + "/" + targetDays;
         return "Routine{" +
                 "id=" + id +
+                ", type=" + type +
                 ", habit=" + habitId +
                 ", status=" + status +
                 ", streak=" + streak.currentStreak() +
-                ", days=" + getDaysRemaining() + "/" + targetDays +
+                ", days=" + daysInfo +
                 '}';
     }
 
@@ -543,7 +658,7 @@ public class Routine {
 
         // Test 18: Target days validation
         try {
-            new Routine(RoutineId.generate(), habitId, practitionerId, daily, 91,
+            new Routine(RoutineId.generate(), habitId, practitionerId, RoutineType.ROUTINE, daily, 91,
                     startDate, startDate.plusDays(91), null, HabitStreak.initial(),
                     RoutineStatus.ACTIVE, Instant.now());
             assert false : "Should enforce 90 days between start and end (91 days total)";
@@ -563,7 +678,7 @@ public class Routine {
         Routine r20a = Routine.start(habitId, practitionerId, daily, startDate);
         Routine r20b = Routine.start(habitId, practitionerId, daily, startDate);
         assert !r20a.equals(r20b) : "Different IDs should not be equal";
-        Routine r20c = new Routine(r20a.getId(), habitId, practitionerId, daily, 91, startDate,
+        Routine r20c = new Routine(r20a.getId(), habitId, practitionerId, RoutineType.ROUTINE, daily, 91, startDate,
                 startDate.plusDays(90), null, HabitStreak.initial(), RoutineStatus.ACTIVE, Instant.now());
         assert r20a.equals(r20c) : "Same ID should be equal";
         System.out.println("✓ Test 20: Equality based on ID works");

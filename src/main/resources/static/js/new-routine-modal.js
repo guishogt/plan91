@@ -186,6 +186,26 @@ function createNewRoutineModal() {
 
                     <form id="startRoutineForm" class="space-y-4">
                         <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Type *</label>
+                            <div class="flex gap-4">
+                                <label class="flex items-center p-3 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 has-[:checked]:border-blue-500 has-[:checked]:bg-blue-50">
+                                    <input type="radio" name="routineType" value="ROUTINE" checked class="mr-2" onchange="toggleRoutineTypeFields()">
+                                    <div>
+                                        <span class="font-medium">91-Day Routine</span>
+                                        <p class="text-xs text-gray-500">Goal with one-strike rule</p>
+                                    </div>
+                                </label>
+                                <label class="flex items-center p-3 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 has-[:checked]:border-green-500 has-[:checked]:bg-green-50">
+                                    <input type="radio" name="routineType" value="TRACKER" class="mr-2" onchange="toggleRoutineTypeFields()">
+                                    <div>
+                                        <span class="font-medium">Tracker</span>
+                                        <p class="text-xs text-gray-500">Track streaks, no penalties</p>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Start Date *</label>
                             <input type="date" id="routineStartDate" required
                                    class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-transparent">
@@ -210,9 +230,9 @@ function createNewRoutineModal() {
                             </select>
                         </div>
 
-                        <div>
+                        <div id="durationFieldContainer">
                             <label class="block text-sm font-medium text-gray-700 mb-2">Duration (days) *</label>
-                            <input type="number" id="routineTargetDays" required min="1" max="365" value="91"
+                            <input type="number" id="routineTargetDays" min="1" max="365" value="91"
                                    class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-transparent">
                             <p class="text-xs text-gray-500 mt-1">How many completions to finish this routine (default: 91)</p>
                         </div>
@@ -221,7 +241,7 @@ function createNewRoutineModal() {
                             <p class="text-red-800"></p>
                         </div>
 
-                        <button type="submit" class="w-full py-3 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition-all">
+                        <button type="submit" id="startRoutineButton" class="w-full py-3 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition-all">
                             Start 91-Day Routine
                         </button>
                     </form>
@@ -297,6 +317,24 @@ function toggleUnitField() {
     }
 }
 
+function toggleRoutineTypeFields() {
+    const routineType = document.querySelector('input[name="routineType"]:checked').value;
+    const durationContainer = document.getElementById('durationFieldContainer');
+    const submitButton = document.getElementById('startRoutineButton');
+
+    if (routineType === 'TRACKER') {
+        durationContainer.classList.add('hidden');
+        submitButton.textContent = 'Start Tracker';
+        submitButton.classList.remove('bg-green-600', 'hover:bg-green-700');
+        submitButton.classList.add('bg-blue-600', 'hover:bg-blue-700');
+    } else {
+        durationContainer.classList.remove('hidden');
+        submitButton.textContent = 'Start 91-Day Routine';
+        submitButton.classList.remove('bg-blue-600', 'hover:bg-blue-700');
+        submitButton.classList.add('bg-green-600', 'hover:bg-green-700');
+    }
+}
+
 async function handleCreateHabit(e) {
     e.preventDefault();
 
@@ -336,12 +374,16 @@ async function handleCreateHabit(e) {
 async function handleStartRoutine(e) {
     e.preventDefault();
 
+    const routineType = document.querySelector('input[name="routineType"]:checked').value;
+    const isTracker = routineType === 'TRACKER';
+
     const routineData = {
         practitionerId: modalPractitionerId,
         habitId: selectedHabitId,
         startDate: document.getElementById('routineStartDate').value,
         recurrenceType: document.getElementById('routineRecurrence').value,
-        targetDays: parseInt(document.getElementById('routineTargetDays').value) || 91
+        routineType: routineType,
+        targetDays: isTracker ? null : (parseInt(document.getElementById('routineTargetDays').value) || 91)
     };
 
     try {

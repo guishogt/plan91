@@ -34,6 +34,7 @@ public interface RoutineMapper {
     @Mapping(target = "id", source = "id.value")
     @Mapping(target = "habit", ignore = true)  // Set separately
     @Mapping(target = "practitioner", ignore = true)  // Set separately
+    @Mapping(target = "routineType", source = "type")  // type -> routineType
     @Mapping(target = "recurrenceRule", source = "recurrenceRule")
     @Mapping(target = "streak", source = "streak")
     @Mapping(target = "targetDays", source = "targetDays")
@@ -48,6 +49,7 @@ public interface RoutineMapper {
     @Mapping(target = "id", expression = "java(new RoutineId(entity.getId()))")
     @Mapping(target = "habitId", expression = "java(new HabitId(entity.getHabit().getId()))")
     @Mapping(target = "practitionerId", expression = "java(new HabitPractitionerId(entity.getPractitioner().getId()))")
+    @Mapping(target = "type", source = "routineType")  // routineType -> type
     @Mapping(target = "recurrenceRule", source = "recurrenceRule")
     @Mapping(target = "streak", source = "streak")
     @Mapping(target = "targetDays", source = "targetDays")

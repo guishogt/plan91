@@ -1,6 +1,7 @@
 package com.ctoblue.plan91.adapter.out.persistence.entity;
 
 import com.ctoblue.plan91.domain.routine.RoutineStatus;
+import com.ctoblue.plan91.domain.routine.RoutineType;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.GenericGenerator;
@@ -45,20 +46,26 @@ public class RoutineEntity {
     @JoinColumn(name = "practitioner_id", nullable = false)
     private HabitPractitionerEntity practitioner;
 
+    // Type (ROUTINE or TRACKER)
+    @Enumerated(EnumType.STRING)
+    @Column(name = "routine_type", nullable = false, length = 20)
+    @Builder.Default
+    private RoutineType routineType = RoutineType.ROUTINE;
+
     // Recurrence rule (embedded)
     @Embedded
     private RecurrenceRuleEmbeddable recurrenceRule;
 
-    // Target days (how many completions needed, default 91)
-    @Column(name = "target_days", nullable = false)
-    @Builder.Default
-    private int targetDays = 91;
+    // Target days (how many completions needed, default 91, null for TRACKER)
+    @Column(name = "target_days")
+    private Integer targetDays;
 
     // The N-day cycle
     @Column(name = "start_date", nullable = false)
     private LocalDate startDate;
 
-    @Column(name = "expected_end_date", nullable = false)
+    // Expected end date (null for TRACKER)
+    @Column(name = "expected_end_date")
     private LocalDate expectedEndDate;
 
     @Column(name = "completed_at")

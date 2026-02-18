@@ -141,8 +141,8 @@ async function updateRoutinesList() {
                 <svg class="mx-auto h-16 w-16 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
                 </svg>
-                <h3 class="text-xl font-medium text-gray-900 mb-2">No active routines</h3>
-                <p class="text-gray-600 mb-6">Start your first 91-day routine to begin tracking.</p>
+                <h3 class="text-xl font-medium text-gray-900 mb-2">No active routines or trackers</h3>
+                <p class="text-gray-600 mb-6">Start a 91-day routine or a simple tracker to begin.</p>
                 <button onclick="openNewRoutineModal()" class="btn-primary inline-flex items-center">
                     <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
@@ -173,10 +173,10 @@ async function updateRoutinesList() {
 }
 
 function createRoutineCard(routine, index) {
+    const isTracker = routine.routineType === 'TRACKER';
     const daysElapsed = Math.floor((new Date() - new Date(routine.startDate)) / (1000 * 60 * 60 * 24));
     const targetDays = routine.targetDays || 91;
-    const progressPercent = Math.min(((routine.totalCompletions / targetDays) * 100), 100).toFixed(0);
-    const daysRemaining = targetDays - routine.totalCompletions;
+    const progressPercent = isTracker ? 0 : Math.min(((routine.totalCompletions / targetDays) * 100), 100).toFixed(0);
 
     // Check if completed on the selected date using the fetched completedRoutineIds
     const selectedDateStr = getSelectedDateString();
@@ -185,26 +185,32 @@ function createRoutineCard(routine, index) {
     // Check if viewing today
     const isViewingToday = selectedDateStr === toLocalDateString(today);
 
-    // Rotate colors for variety
-    const borderColors = ['border-primary-500', 'border-warning-500', 'border-success-500', 'border-purple-500'];
-    const gradientColors = [
-        'from-primary-500 to-primary-600',
-        'from-warning-400 to-warning-600',
-        'from-success-400 to-success-600',
-        'from-purple-400 to-purple-600'
-    ];
+    // Rotate colors for variety (trackers use different palette)
+    const borderColors = isTracker
+        ? ['border-blue-500', 'border-indigo-500', 'border-cyan-500', 'border-teal-500']
+        : ['border-primary-500', 'border-warning-500', 'border-success-500', 'border-purple-500'];
+    const gradientColors = isTracker
+        ? ['from-blue-400 to-blue-600', 'from-indigo-400 to-indigo-600', 'from-cyan-400 to-cyan-600', 'from-teal-400 to-teal-600']
+        : ['from-primary-500 to-primary-600', 'from-warning-400 to-warning-600', 'from-success-400 to-success-600', 'from-purple-400 to-purple-600'];
     const borderColor = borderColors[index % borderColors.length];
     const gradientColor = gradientColors[index % gradientColors.length];
 
-    const strikeWarning = routine.hasUsedStrike ? `
+    // Strike warning only applies to ROUTINE type
+    const strikeWarning = (!isTracker && routine.hasUsedStrike) ? `
         <div class="bg-warning-50 border border-warning-200 rounded-lg p-3 mb-3">
             <p class="text-sm text-warning-800 font-medium">⚠️ Strike used - No more misses allowed!</p>
         </div>
     ` : '';
 
-    const badgeStatus = routine.hasUsedStrike ?
-        '<span class="badge-warning text-xs font-semibold">⚠️ Strike Used</span>' :
-        '<span class="badge-success text-xs">Active</span>';
+    // Badge: Tracker shows "Tracker" badge, Routine shows Active/Strike Used
+    let badgeStatus;
+    if (isTracker) {
+        badgeStatus = '<span class="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs font-semibold">📊 Tracker</span>';
+    } else if (routine.hasUsedStrike) {
+        badgeStatus = '<span class="badge-warning text-xs font-semibold">⚠️ Strike Used</span>';
+    } else {
+        badgeStatus = '<span class="badge-success text-xs">Active</span>';
+    }
 
     return `
         <div class="bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 p-4 md:p-6 border-l-4 ${borderColor}">
@@ -216,7 +222,15 @@ function createRoutineCard(routine, index) {
                     </div>
                     <p class="text-gray-600 mb-4 md:mb-5 text-sm md:text-base">${formatRecurrence(routine.recurrenceType, routine.specificDays)}</p>
 
-                    <!-- Progress Bar -->
+                    <!-- Progress Bar (different for Trackers) -->
+                    ${isTracker ? `
+                    <div class="mb-4">
+                        <div class="flex justify-between text-sm mb-2">
+                            <span class="text-gray-700 font-medium">Total completions</span>
+                            <span class="text-gray-900 font-bold">${routine.totalCompletions} days</span>
+                        </div>
+                    </div>
+                    ` : `
                     <div class="mb-4">
                         <div class="flex justify-between text-sm mb-2">
                             <span class="text-gray-700 font-medium">Progress</span>
@@ -226,6 +240,7 @@ function createRoutineCard(routine, index) {
                             <div class="bg-gradient-to-r ${gradientColor} h-3 rounded-full shadow-sm transition-all duration-500" style="width: ${progressPercent}%"></div>
                         </div>
                     </div>
+                    `}
 
                     ${strikeWarning}
 
@@ -263,7 +278,7 @@ function createRoutineCard(routine, index) {
                        class="text-center px-6 py-3 border border-blue-600 text-blue-600 rounded-md hover:bg-blue-50 text-sm whitespace-nowrap">
                         View Details
                     </a>
-                    <button onclick="openEditRoutineModal('${routine.id}', '${escapeHtml(routine.habitName)}', '${routine.recurrenceType}', '${routine.startDate}', ${routine.targetDays})"
+                    <button onclick="openEditRoutineModal('${routine.id}', '${escapeHtml(routine.habitName)}', '${routine.recurrenceType}', '${routine.startDate}', ${routine.targetDays || 'null'}, '${routine.routineType || 'ROUTINE'}')"
                             class="text-gray-400 hover:text-gray-600 p-2"
                             title="Edit routine">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

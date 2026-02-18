@@ -3,6 +3,7 @@ package com.ctoblue.plan91.adapter.in.web.dto;
 import com.ctoblue.plan91.domain.habit.TrackingType;
 import com.ctoblue.plan91.domain.routine.RecurrenceType;
 import com.ctoblue.plan91.domain.routine.RoutineStatus;
+import com.ctoblue.plan91.domain.routine.RoutineType;
 
 import java.time.LocalDate;
 import java.util.Set;
@@ -19,13 +20,14 @@ public record RoutineDto(
         TrackingType trackingType,
         String numericUnit,
         String practitionerId,
+        RoutineType routineType,  // ROUTINE or TRACKER
         RecurrenceType recurrenceType,
         Set<String> specificDays,
         String nthDay,
         Integer nthWeek,
-        int targetDays,
+        Integer targetDays,  // null for TRACKER
         LocalDate startDate,
-        LocalDate expectedEndDate,
+        LocalDate expectedEndDate,  // null for TRACKER
         RoutineStatus status,
         int currentStreak,
         int longestStreak,
