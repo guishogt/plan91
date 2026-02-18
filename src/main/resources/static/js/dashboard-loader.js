@@ -232,6 +232,7 @@ function createRoutineCard(routine, index) {
                     </div>
                     ` : `
                     <div class="mb-4">
+                        ${routine.expectedEndDate ? `<p class="text-xs text-gray-500 mb-1">Ends ${formatEndDate(routine.expectedEndDate)}</p>` : ''}
                         <div class="flex justify-between text-sm mb-2">
                             <span class="text-gray-700 font-medium">Progress</span>
                             <span class="text-gray-900 font-bold">${routine.totalCompletions}/${targetDays} days (${progressPercent}%)</span>
@@ -304,6 +305,19 @@ function formatRecurrence(type, specificDays) {
         default:
             return type;
     }
+}
+
+function formatEndDate(dateString) {
+    if (!dateString) return '';
+    const date = new Date(dateString + 'T00:00:00'); // Parse as local date
+    const currentYear = new Date().getFullYear();
+    const dateYear = date.getFullYear();
+
+    const options = { month: 'short', day: 'numeric' };
+    if (dateYear !== currentYear) {
+        options.year = 'numeric';
+    }
+    return date.toLocaleDateString('en-US', options);
 }
 
 function escapeHtml(text) {
