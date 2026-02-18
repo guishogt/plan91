@@ -1,5 +1,14 @@
 # Claude Code Instructions for Plan 91
 
+## CRITICAL: Do NOT Deploy Without Permission
+
+**NEVER deploy to production unless the user explicitly asks you to deploy.**
+
+When ready to deploy, tell the user and wait for their confirmation.
+Use the `/deploy` skill when they give permission.
+
+---
+
 ## CRITICAL: Pre-Deployment Backup
 
 **ALWAYS create a database backup before deploying ANY changes to production.**
