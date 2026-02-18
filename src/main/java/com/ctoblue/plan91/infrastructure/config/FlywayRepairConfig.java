@@ -4,17 +4,14 @@ import org.flywaydb.core.Flyway;
 import org.springframework.boot.autoconfigure.flyway.FlywayMigrationStrategy;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Profile;
 
 /**
  * Flyway configuration that repairs the schema history before migrating.
- * This is needed when a previous migration failed and left the history in a bad state.
+ * This is needed when a migration was modified after being applied.
  *
- * Only active in production profile to fix the Railway deployment issue.
- * Can be removed once the database is healthy.
+ * Active in all profiles to handle checksum mismatches gracefully.
  */
 @Configuration
-@Profile("production")
 public class FlywayRepairConfig {
 
     @Bean
