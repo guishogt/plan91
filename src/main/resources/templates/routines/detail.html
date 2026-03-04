@@ -104,6 +104,23 @@
             document.getElementById('routine-description').textContent =
                 `Started ${routine.startDate} • ${routine.status}`;
 
+            // Show restart banner for abandoned routines
+            if (routine.status === 'ABANDONED') {
+                const banner = document.createElement('div');
+                banner.className = 'bg-red-50 border border-red-200 rounded-xl p-4 mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3';
+                banner.innerHTML = `
+                    <div>
+                        <p class="font-semibold text-red-800">This routine was abandoned</p>
+                        <p class="text-sm text-red-600">You completed ${routine.totalCompletions} days with a best streak of ${routine.longestStreak}. Start fresh?</p>
+                    </div>
+                    <button onclick="restartRoutineFromDetail('${routine.id}')"
+                            class="px-5 py-2 rounded-lg font-semibold text-sm border-2 border-green-500 text-green-600 hover:bg-green-500 hover:text-white transition-colors whitespace-nowrap">
+                        ↻ Restart Routine
+                    </button>
+                `;
+                document.getElementById('progress-container').before(banner);
+            }
+
             // Initialize visualization components
             new RoutineProgress('progress-container', routineId);
             new RoutineCalendar('calendar-container', routineId);
@@ -174,6 +191,20 @@
         if (dateOnly === yesterdayOnly) return 'Yesterday';
 
         return date.toLocaleDateString('default', { weekday: 'short', month: 'short', day: 'numeric' });
+    }
+
+    async function restartRoutineFromDetail(id) {
+        if (!confirm('Restart this routine? It will begin a new cycle from today, keeping your history.')) return;
+        try {
+            const response = await fetch(`/api/routines/${id}/restart`, { method: 'POST' });
+            if (response.ok) {
+                window.location.reload();
+            } else {
+                alert('Failed to restart routine');
+            }
+        } catch (error) {
+            alert('Network error: ' + error.message);
+        }
     }
 
     // Initialize on page load

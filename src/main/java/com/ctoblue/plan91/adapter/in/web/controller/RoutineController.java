@@ -13,6 +13,7 @@ import com.ctoblue.plan91.application.usecase.routine.QueryRoutinesUseCase;
 import com.ctoblue.plan91.application.usecase.routine.StartRoutineCommand;
 import com.ctoblue.plan91.application.usecase.routine.StartRoutineUseCase;
 import com.ctoblue.plan91.domain.routine.RoutineStatus;
+import com.ctoblue.plan91.domain.routine.RoutineType;
 import jakarta.validation.Valid;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
@@ -140,6 +141,50 @@ public class RoutineController {
         routineRepository.save(routine);
 
         return ResponseEntity.noContent().build();
+    }
+
+    /**
+     * Restarts an abandoned routine with a fresh 91-day cycle.
+     * Keeps history (totalCompletions, longestStreak, all entries).
+     *
+     * @param id the routine's ID
+     * @return the restarted routine
+     */
+    @PostMapping("/{id}/restart")
+    @Transactional
+    public ResponseEntity<RoutineDto> restartRoutine(@PathVariable String id) {
+        UUID routineId = UUID.fromString(id);
+        RoutineEntity routine = routineRepository.findById(routineId)
+                .orElseThrow(() -> new IllegalArgumentException("Routine not found: " + id));
+
+        if (routine.getStatus() != RoutineStatus.ABANDONED && routine.getStatus() != RoutineStatus.ARCHIVED) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        // Reset status
+        routine.setStatus(RoutineStatus.ACTIVE);
+
+        // New cycle starting today
+        LocalDate newStart = LocalDate.now();
+        routine.setStartDate(newStart);
+        if (routine.getRoutineType() == RoutineType.ROUTINE) {
+            int target = routine.getTargetDays() != null ? routine.getTargetDays() : 91;
+            routine.setTargetDays(target);
+            routine.setExpectedEndDate(newStart.plusDays(target - 1));
+        }
+        routine.setCompletedAt(null);
+
+        // Reset streak tracking (keep totalCompletions and longestStreak)
+        var streak = routine.getStreak();
+        streak.setCurrentStreak(0);
+        streak.setHasUsedStrike(false);
+        streak.setStrikeDate(null);
+        streak.setLastCompletionDate(null);
+
+        routine.setUpdatedAt(Instant.now());
+        RoutineEntity saved = routineRepository.save(routine);
+        RoutineDto dto = routineDtoMapper.toDto(saved);
+        return ResponseEntity.ok(dto);
     }
 
     /**

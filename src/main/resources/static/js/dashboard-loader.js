@@ -1,8 +1,12 @@
 // Dashboard Data Loader - Loads real user data into the beautiful dashboard UI
 let practitionerId;
 let routines = [];
+let abandonedRoutines = [];
+let archivedRoutines = [];
 let statistics = null;
 let completedRoutineIds = new Set();
+let skippedRoutineIds = new Set();
+let skippedNotes = {}; // routineId -> note
 
 // Date navigation - allow viewing up to 5 days back
 let selectedDate = new Date();
@@ -91,15 +95,19 @@ function getSelectedDateString() {
 
 async function loadDashboardData() {
     try {
-        // Load statistics and routines in parallel (using secureFetch for session auth)
-        const [statsResponse, routinesResponse] = await Promise.all([
+        // Load statistics, active routines, and abandoned routines in parallel
+        const [statsResponse, routinesResponse, abandonedResponse, archivedResponse] = await Promise.all([
             secureFetch(`/api/analytics/practitioners/${practitionerId}/statistics`),
-            secureFetch(`/api/routines/active?practitionerId=${practitionerId}`)
+            secureFetch(`/api/routines/active?practitionerId=${practitionerId}`),
+            secureFetch(`/api/routines/status/ABANDONED?practitionerId=${practitionerId}`),
+            secureFetch(`/api/routines/status/ARCHIVED?practitionerId=${practitionerId}`)
         ]);
 
         if (statsResponse.ok && routinesResponse.ok) {
             statistics = await statsResponse.json();
             routines = await routinesResponse.json();
+            abandonedRoutines = abandonedResponse.ok ? await abandonedResponse.json() : [];
+            archivedRoutines = archivedResponse.ok ? await archivedResponse.json() : [];
 
             updateStatsCards();
             updateRoutinesList();
@@ -154,22 +162,59 @@ async function updateRoutinesList() {
         return;
     }
 
-    // Fetch which routines are completed for the selected date
+    // Fetch status of all routines for the selected date
     const routineIds = routines.map(r => r.id).join(',');
     const dateStr = getSelectedDateString();
 
     try {
-        const response = await secureFetch(`/api/entries/completed-routines?routineIds=${routineIds}&date=${dateStr}`);
+        const response = await secureFetch(`/api/entries/status?routineIds=${routineIds}&date=${dateStr}`);
         if (response.ok) {
-            const completedIds = await response.json();
-            completedRoutineIds = new Set(completedIds);
+            const statusMap = await response.json();
+            completedRoutineIds = new Set();
+            skippedRoutineIds = new Set();
+            skippedNotes = {};
+
+            for (const [routineId, status] of Object.entries(statusMap)) {
+                if (status.completed) {
+                    completedRoutineIds.add(routineId);
+                } else {
+                    skippedRoutineIds.add(routineId);
+                    if (status.notes) {
+                        skippedNotes[routineId] = status.notes;
+                    }
+                }
+            }
         }
     } catch (error) {
-        console.error('Error fetching completed routines:', error);
+        console.error('Error fetching routine status:', error);
         completedRoutineIds = new Set();
+        skippedRoutineIds = new Set();
+        skippedNotes = {};
     }
 
-    routinesContainer.innerHTML = routines.map((routine, index) => createRoutineCard(routine, index)).join('');
+    let html = routines.map((routine, index) => createRoutineCard(routine, index)).join('');
+
+    // Show abandoned routines in a dimmed section
+    if (abandonedRoutines.length > 0) {
+        html += `
+            <div class="mt-8 mb-4">
+                <h3 class="text-sm font-semibold text-gray-400 uppercase tracking-wider">Broken Routines</h3>
+            </div>
+        `;
+        html += abandonedRoutines.map((routine, index) => createAbandonedRoutineCard(routine, index)).join('');
+    }
+
+    // Show archived routines
+    if (archivedRoutines.length > 0) {
+        html += `
+            <div class="mt-8 mb-4">
+                <h3 class="text-sm font-semibold text-gray-400 uppercase tracking-wider">Archived</h3>
+            </div>
+        `;
+        html += archivedRoutines.map((routine, index) => createArchivedRoutineCard(routine, index)).join('');
+    }
+
+    routinesContainer.innerHTML = html;
 }
 
 function createRoutineCard(routine, index) {
@@ -178,9 +223,11 @@ function createRoutineCard(routine, index) {
     const targetDays = routine.targetDays || 91;
     const progressPercent = isTracker ? 0 : Math.min(((routine.totalCompletions / targetDays) * 100), 100).toFixed(0);
 
-    // Check if completed on the selected date using the fetched completedRoutineIds
+    // Check if completed or skipped on the selected date
     const selectedDateStr = getSelectedDateString();
     const completedOnSelectedDate = completedRoutineIds.has(routine.id);
+    const skippedOnSelectedDate = skippedRoutineIds.has(routine.id);
+    const skipNote = skippedNotes[routine.id] || '';
 
     // Check if viewing today
     const isViewingToday = selectedDateStr === toLocalDateString(today);
@@ -258,7 +305,7 @@ function createRoutineCard(routine, index) {
                         </span>
                     </div>
                 </div>
-                <div class="routine-buttons">
+                <div class="flex flex-col items-center gap-2 flex-shrink-0">
                     ${completedOnSelectedDate ? `
                         <button onclick="uncompleteEntry('${routine.id}', this)"
                                 class="text-white text-base px-6 py-3 whitespace-nowrap rounded-lg shadow-md font-semibold transition-colors duration-200"
@@ -267,6 +314,20 @@ function createRoutineCard(routine, index) {
                                 id="complete-btn-${routine.id}">
                             ✓ ${isViewingToday ? 'Done Today!' : 'Done!'}
                         </button>
+                    ` : skippedOnSelectedDate ? `
+                        <div class="text-center">
+                            <div class="text-sm text-gray-500 italic mb-1 ${skipNote ? 'cursor-help' : ''}" ${skipNote ? `title="${escapeHtml(skipNote)}"` : ''}>
+                                Skipped${skipNote ? ' (hover for note)' : ''}
+                            </div>
+                            <button onclick="openCompleteEntryModal('${routine.id}', '${escapeHtml(routine.habitName)}', '${routine.trackingType || 'BOOLEAN'}', '${escapeHtml(routine.numericUnit || '')}', this)"
+                                    class="text-sm px-4 py-2 whitespace-nowrap rounded-lg font-medium transition-colors duration-200"
+                                    style="background-color: #10b981; color: white;"
+                                    onmouseover="this.style.backgroundColor='#059669'"
+                                    onmouseout="this.style.backgroundColor='#10b981'"
+                                    id="complete-btn-${routine.id}">
+                                ✓ Did it after all
+                            </button>
+                        </div>
                     ` : `
                         <button onclick="openCompleteEntryModal('${routine.id}', '${escapeHtml(routine.habitName)}', '${routine.trackingType || 'BOOLEAN'}', '${escapeHtml(routine.numericUnit || '')}', this)"
                                 class="text-base px-6 py-3 whitespace-nowrap rounded-lg font-semibold transition-colors duration-200"
@@ -277,21 +338,131 @@ function createRoutineCard(routine, index) {
                             ✓ Mark Complete
                         </button>
                     `}
-                    <a href="/routines/detail?id=${routine.id}"
-                       class="text-center px-6 py-3 border border-blue-600 text-blue-600 rounded-md hover:bg-blue-50 text-sm whitespace-nowrap">
-                        View Details
-                    </a>
-                    <button onclick="openEditRoutineModal('${routine.id}', '${escapeHtml(routine.habitName)}', '${routine.recurrenceType}', '${routine.startDate}', ${routine.targetDays || 'null'}, '${routine.routineType || 'ROUTINE'}')"
-                            class="text-gray-400 hover:text-gray-600 p-2"
-                            title="Edit routine">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path>
-                        </svg>
-                    </button>
+                    <!-- Icon row -->
+                    <div class="flex items-center gap-3">
+                        ${!completedOnSelectedDate && !skippedOnSelectedDate ? `
+                        <button onclick="openSkipModal('${routine.id}', '${escapeHtml(routine.habitName)}')"
+                                class="text-gray-400 hover:text-red-500 p-1 transition-colors"
+                                title="Didn't do it"
+                                id="skip-btn-${routine.id}">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"></path>
+                            </svg>
+                        </button>
+                        ` : ''}
+                        <a href="/routines/detail?id=${routine.id}"
+                           class="text-gray-400 hover:text-blue-600 p-1 transition-colors"
+                           title="View Details">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                            </svg>
+                        </a>
+                        <button onclick="openEditRoutineModal('${routine.id}', '${escapeHtml(routine.habitName)}', '${routine.recurrenceType}', '${routine.startDate}', ${routine.targetDays || 'null'}, '${routine.routineType || 'ROUTINE'}')"
+                                class="text-gray-400 hover:text-gray-600 p-1 transition-colors"
+                                title="Edit routine">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path>
+                            </svg>
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
     `;
+}
+
+function createAbandonedRoutineCard(routine, index) {
+    const targetDays = routine.targetDays || 91;
+
+    return `
+        <div class="bg-white rounded-xl shadow-sm p-4 md:p-6 border-l-4 border-gray-300 opacity-60 hover:opacity-100 transition-opacity duration-300">
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                <div class="flex-1">
+                    <div class="flex items-center gap-3 mb-2">
+                        <h3 class="text-lg font-bold text-gray-500">${routine.habitName}</h3>
+                        <span class="bg-red-100 text-red-700 px-2 py-0.5 rounded-full text-xs font-semibold">Abandoned</span>
+                    </div>
+                    <p class="text-gray-400 text-sm mb-2">${formatRecurrence(routine.recurrenceType, routine.specificDays)}</p>
+                    <div class="flex items-center gap-4 text-sm text-gray-400">
+                        <span>Total: ${routine.totalCompletions}/${targetDays} days</span>
+                        <span>Best streak: ${routine.longestStreak} days</span>
+                    </div>
+                </div>
+                <div class="flex items-center gap-3 flex-shrink-0">
+                    <button onclick="restartRoutine('${routine.id}')"
+                            class="px-4 py-2 rounded-lg font-semibold text-sm transition-colors duration-200 border-2 border-green-500 text-green-600 hover:bg-green-500 hover:text-white">
+                        ↻ Restart
+                    </button>
+                    <a href="/routines/detail?id=${routine.id}"
+                       class="text-gray-400 hover:text-blue-600 p-1 transition-colors"
+                       title="View Details">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                        </svg>
+                    </a>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+function createArchivedRoutineCard(routine, index) {
+    const targetDays = routine.targetDays || 91;
+
+    return `
+        <div class="bg-white rounded-xl shadow-sm p-4 md:p-6 border-l-4 border-gray-200 opacity-50 hover:opacity-100 transition-opacity duration-300">
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                <div class="flex-1">
+                    <div class="flex items-center gap-3 mb-2">
+                        <h3 class="text-lg font-bold text-gray-400">${routine.habitName}</h3>
+                        <span class="bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full text-xs font-semibold">Archived</span>
+                    </div>
+                    <p class="text-gray-400 text-sm mb-2">${formatRecurrence(routine.recurrenceType, routine.specificDays)}</p>
+                    <div class="flex items-center gap-4 text-sm text-gray-400">
+                        <span>Total: ${routine.totalCompletions}/${targetDays} days</span>
+                        <span>Best streak: ${routine.longestStreak} days</span>
+                    </div>
+                </div>
+                <div class="flex items-center gap-3 flex-shrink-0">
+                    <button onclick="restartRoutine('${routine.id}')"
+                            class="px-4 py-2 rounded-lg font-semibold text-sm transition-colors duration-200 border-2 border-green-500 text-green-600 hover:bg-green-500 hover:text-white">
+                        ↻ Restart
+                    </button>
+                    <a href="/routines/detail?id=${routine.id}"
+                       class="text-gray-400 hover:text-blue-600 p-1 transition-colors"
+                       title="View Details">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                        </svg>
+                    </a>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+async function restartRoutine(routineId) {
+    if (!confirm('Restart this routine? It will begin a new cycle from today, keeping your history.')) {
+        return;
+    }
+
+    try {
+        const response = await secureFetch(`/api/routines/${routineId}/restart`, {
+            method: 'POST'
+        });
+
+        if (response.ok) {
+            await loadDashboardData();
+        } else {
+            const errorData = await response.json();
+            alert(errorData.message || 'Failed to restart routine');
+        }
+    } catch (error) {
+        alert('Network error: ' + error.message);
+    }
 }
 
 function formatRecurrence(type, specificDays) {
@@ -535,6 +706,127 @@ function createCompleteEntryModal() {
 
 function showModalError(message) {
     const errorDiv = document.getElementById('modalErrorMessage');
+    if (errorDiv) {
+        errorDiv.querySelector('p').textContent = message;
+        errorDiv.classList.remove('hidden');
+    }
+}
+
+// Skip modal functions
+function openSkipModal(routineId, habitName) {
+    // Create modal if it doesn't exist
+    let modal = document.getElementById('skipEntryModal');
+    if (!modal) {
+        createSkipModal();
+        modal = document.getElementById('skipEntryModal');
+    }
+
+    document.getElementById('skipRoutineId').value = routineId;
+    document.getElementById('skipModalHabitName').textContent = habitName;
+    document.getElementById('skipNotes').value = '';
+
+    modal.classList.remove('hidden');
+    document.getElementById('skipNotes').focus();
+}
+
+function closeSkipModal() {
+    const modal = document.getElementById('skipEntryModal');
+    if (modal) {
+        modal.classList.add('hidden');
+        document.getElementById('skipForm').reset();
+        const errorDiv = document.getElementById('skipModalError');
+        if (errorDiv) errorDiv.classList.add('hidden');
+    }
+}
+
+function createSkipModal() {
+    const modalHtml = `
+        <div id="skipEntryModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onclick="if(event.target === this) closeSkipModal()">
+            <div class="bg-white rounded-2xl shadow-xl max-w-sm w-full mx-4">
+                <div class="p-6">
+                    <!-- Header -->
+                    <div class="text-center mb-4">
+                        <div class="inline-flex items-center justify-center w-12 h-12 bg-red-100 rounded-full mb-3">
+                            <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                        </div>
+                        <p class="text-gray-500 text-sm" id="skipModalHabitName"></p>
+                    </div>
+
+                    <form id="skipForm">
+                        <input type="hidden" id="skipRoutineId">
+
+                        <!-- Notes input -->
+                        <div class="mb-4">
+                            <label for="skipNotes" class="block text-sm font-medium text-gray-700 mb-2">
+                                Why couldn't you do it? <span class="text-gray-400">(optional)</span>
+                            </label>
+                            <textarea id="skipNotes" name="notes" rows="3"
+                                      class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                                      placeholder="Too busy, feeling sick, etc."></textarea>
+                        </div>
+
+                        <!-- Submit button -->
+                        <button type="submit" class="w-full py-3 text-white rounded-xl font-semibold transition-colors duration-200"
+                                style="background-color: #dc2626;"
+                                onmouseover="this.style.backgroundColor='#b91c1c'"
+                                onmouseout="this.style.backgroundColor='#dc2626'">
+                            Record Skip
+                        </button>
+
+                        <!-- Cancel link -->
+                        <button type="button" onclick="closeSkipModal()"
+                                class="w-full mt-2 py-2 text-gray-500 hover:text-gray-700 text-sm font-medium">
+                            Cancel
+                        </button>
+
+                        <div id="skipModalError" class="hidden mt-4 p-3 bg-red-50 border border-red-200 rounded-lg text-center">
+                            <p class="text-red-800 text-sm"></p>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    `;
+
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+
+    // Add form submit handler
+    document.getElementById('skipForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+
+        const routineId = document.getElementById('skipRoutineId').value;
+        const notes = document.getElementById('skipNotes').value;
+
+        const data = {
+            routineId: routineId,
+            date: getSelectedDateString(),
+            notes: notes || null
+        };
+
+        try {
+            const response = await secureFetch('/api/entries/skip', {
+                method: 'POST',
+                body: JSON.stringify(data)
+            });
+
+            if (response.ok) {
+                closeSkipModal();
+                // Reload dashboard data to show updated state
+                await loadDashboardData();
+            } else {
+                const errorData = await response.json();
+                showSkipModalError(errorData.message || 'Failed to record skip');
+            }
+        } catch (error) {
+            showSkipModalError('Network error: ' + error.message);
+        }
+    });
+}
+
+function showSkipModalError(message) {
+    const errorDiv = document.getElementById('skipModalError');
     if (errorDiv) {
         errorDiv.querySelector('p').textContent = message;
         errorDiv.classList.remove('hidden');
