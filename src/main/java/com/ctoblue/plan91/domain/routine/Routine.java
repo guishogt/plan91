@@ -118,11 +118,6 @@ public class Routine {
                 throw new IllegalArgumentException("Target days must be at least 1 for ROUTINE type, got: " + targetDays);
             }
             this.targetDays = targetDays;
-
-            long daysBetween = ChronoUnit.DAYS.between(startDate, expectedEndDate);
-            if (daysBetween != targetDays - 1) {
-                throw new IllegalArgumentException("ExpectedEndDate must be " + (targetDays - 1) + " days after startDate (" + targetDays + " days total), got: " + daysBetween);
-            }
         }
 
         this.completedAt = completedAt;
@@ -253,9 +248,7 @@ public class Routine {
             throw new IllegalStateException("Can only complete ACTIVE routines, status is: " + status);
         }
 
-        if (date.isBefore(startDate)) {
-            throw new IllegalArgumentException("Cannot complete before start date: " + startDate);
-        }
+        // No restriction on past dates - allow backfilling history
 
         if (streak.lastCompletionDate() != null && date.equals(streak.lastCompletionDate())) {
             throw new IllegalArgumentException("Already completed on: " + date);

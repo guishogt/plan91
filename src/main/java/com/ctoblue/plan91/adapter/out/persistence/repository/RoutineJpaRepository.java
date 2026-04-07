@@ -34,6 +34,12 @@ public interface RoutineJpaRepository extends JpaRepository<RoutineEntity, UUID>
     List<RoutineEntity> findByPractitionerIdAndStatus(UUID practitionerId, RoutineStatus status);
 
     /**
+     * Finds routines by status with habit eagerly loaded (for DTO mapping).
+     */
+    @Query("SELECT r FROM RoutineEntity r JOIN FETCH r.habit JOIN FETCH r.practitioner WHERE r.practitioner.id = :practitionerId AND r.status = :status")
+    List<RoutineEntity> findByPractitionerIdAndStatusWithHabit(@Param("practitionerId") UUID practitionerId, @Param("status") RoutineStatus status);
+
+    /**
      * Finds all active routines for a practitioner (optimized query).
      *
      * @param practitionerId the practitioner's ID

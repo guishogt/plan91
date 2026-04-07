@@ -154,7 +154,7 @@ public class RoutineController {
     @Transactional
     public ResponseEntity<RoutineDto> restartRoutine(@PathVariable String id) {
         UUID routineId = UUID.fromString(id);
-        RoutineEntity routine = routineRepository.findById(routineId)
+        RoutineEntity routine = routineRepository.findByIdWithRelations(routineId)
                 .orElseThrow(() -> new IllegalArgumentException("Routine not found: " + id));
 
         if (routine.getStatus() != RoutineStatus.ABANDONED && routine.getStatus() != RoutineStatus.ARCHIVED) {

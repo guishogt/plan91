@@ -143,7 +143,10 @@ async function updateRoutinesList() {
     const routinesContainer = document.getElementById('routines-container');
     if (!routinesContainer) return;
 
-    if (routines.length === 0) {
+    // Merge active + abandoned routines (active first, then abandoned)
+    const allRoutines = [...routines, ...abandonedRoutines];
+
+    if (allRoutines.length === 0 && archivedRoutines.length === 0) {
         routinesContainer.innerHTML = `
             <div class="bg-white rounded-xl shadow-md p-12 text-center">
                 <svg class="mx-auto h-16 w-16 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -162,49 +165,46 @@ async function updateRoutinesList() {
         return;
     }
 
-    // Fetch status of all routines for the selected date
-    const routineIds = routines.map(r => r.id).join(',');
-    const dateStr = getSelectedDateString();
+    // Fetch status of active routines for the selected date
+    if (routines.length > 0) {
+        const routineIds = routines.map(r => r.id).join(',');
+        const dateStr = getSelectedDateString();
 
-    try {
-        const response = await secureFetch(`/api/entries/status?routineIds=${routineIds}&date=${dateStr}`);
-        if (response.ok) {
-            const statusMap = await response.json();
-            completedRoutineIds = new Set();
-            skippedRoutineIds = new Set();
-            skippedNotes = {};
+        try {
+            const response = await secureFetch(`/api/entries/status?routineIds=${routineIds}&date=${dateStr}`);
+            if (response.ok) {
+                const statusMap = await response.json();
+                completedRoutineIds = new Set();
+                skippedRoutineIds = new Set();
+                skippedNotes = {};
 
-            for (const [routineId, status] of Object.entries(statusMap)) {
-                if (status.completed) {
-                    completedRoutineIds.add(routineId);
-                } else {
-                    skippedRoutineIds.add(routineId);
-                    if (status.notes) {
-                        skippedNotes[routineId] = status.notes;
+                for (const [routineId, status] of Object.entries(statusMap)) {
+                    if (status.completed) {
+                        completedRoutineIds.add(routineId);
+                    } else {
+                        skippedRoutineIds.add(routineId);
+                        if (status.notes) {
+                            skippedNotes[routineId] = status.notes;
+                        }
                     }
                 }
             }
+        } catch (error) {
+            console.error('Error fetching routine status:', error);
+            completedRoutineIds = new Set();
+            skippedRoutineIds = new Set();
+            skippedNotes = {};
         }
-    } catch (error) {
-        console.error('Error fetching routine status:', error);
-        completedRoutineIds = new Set();
-        skippedRoutineIds = new Set();
-        skippedNotes = {};
     }
 
-    let html = routines.map((routine, index) => createRoutineCard(routine, index)).join('');
+    let html = allRoutines.map((routine, index) => {
+        if (routine.status === 'ABANDONED') {
+            return createAbandonedRoutineCard(routine, index);
+        }
+        return createRoutineCard(routine, index);
+    }).join('');
 
-    // Show abandoned routines in a dimmed section
-    if (abandonedRoutines.length > 0) {
-        html += `
-            <div class="mt-8 mb-4">
-                <h3 class="text-sm font-semibold text-gray-400 uppercase tracking-wider">Broken Routines</h3>
-            </div>
-        `;
-        html += abandonedRoutines.map((routine, index) => createAbandonedRoutineCard(routine, index)).join('');
-    }
-
-    // Show archived routines
+    // Show archived routines at the bottom
     if (archivedRoutines.length > 0) {
         html += `
             <div class="mt-8 mb-4">
@@ -373,35 +373,68 @@ function createRoutineCard(routine, index) {
 }
 
 function createAbandonedRoutineCard(routine, index) {
+    const isTracker = routine.routineType === 'TRACKER';
     const targetDays = routine.targetDays || 91;
+    const progressPercent = isTracker ? 0 : Math.min(((routine.totalCompletions / targetDays) * 100), 100).toFixed(0);
 
     return `
-        <div class="bg-white rounded-xl shadow-sm p-4 md:p-6 border-l-4 border-gray-300 opacity-60 hover:opacity-100 transition-opacity duration-300">
-            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div class="bg-red-50 rounded-xl shadow-sm p-4 md:p-6 border-l-4 border-red-400">
+            <div class="flex flex-col md:flex-row md:items-start md:justify-between gap-4 md:gap-6">
                 <div class="flex-1">
-                    <div class="flex items-center gap-3 mb-2">
-                        <h3 class="text-lg font-bold text-gray-500">${routine.habitName}</h3>
-                        <span class="bg-red-100 text-red-700 px-2 py-0.5 rounded-full text-xs font-semibold">Abandoned</span>
+                    <div class="flex items-center gap-3 mb-3">
+                        <h3 class="text-lg md:text-xl font-bold text-gray-700">${routine.habitName}</h3>
+                        <span class="bg-red-100 text-red-700 px-2 py-0.5 rounded-full text-xs font-semibold">Broken</span>
                     </div>
-                    <p class="text-gray-400 text-sm mb-2">${formatRecurrence(routine.recurrenceType, routine.specificDays)}</p>
-                    <div class="flex items-center gap-4 text-sm text-gray-400">
-                        <span>Total: ${routine.totalCompletions}/${targetDays} days</span>
-                        <span>Best streak: ${routine.longestStreak} days</span>
+                    <p class="text-gray-500 mb-4 text-sm">${formatRecurrence(routine.recurrenceType, routine.specificDays)}</p>
+
+                    ${isTracker ? `
+                    <div class="mb-4">
+                        <div class="flex justify-between text-sm mb-2">
+                            <span class="text-gray-500 font-medium">Total completions</span>
+                            <span class="text-gray-700 font-bold">${routine.totalCompletions} days</span>
+                        </div>
+                    </div>
+                    ` : `
+                    <div class="mb-4">
+                        <div class="flex justify-between text-sm mb-2">
+                            <span class="text-gray-500 font-medium">Progress before break</span>
+                            <span class="text-gray-700 font-bold">${routine.totalCompletions}/${targetDays} days (${progressPercent}%)</span>
+                        </div>
+                        <div class="w-full bg-red-200 rounded-full h-3 overflow-hidden">
+                            <div class="bg-red-400 h-3 rounded-full transition-all duration-500" style="width: ${progressPercent}%"></div>
+                        </div>
+                    </div>
+                    `}
+
+                    <div class="flex items-center gap-6 text-sm">
+                        <span class="flex items-center gap-2 text-gray-500">
+                            <span class="text-xl">⭐</span>
+                            <span class="font-medium">Best: ${routine.longestStreak} days</span>
+                        </span>
                     </div>
                 </div>
-                <div class="flex items-center gap-3 flex-shrink-0">
+                <div class="flex flex-col items-center gap-2 flex-shrink-0">
                     <button onclick="restartRoutine('${routine.id}')"
-                            class="px-4 py-2 rounded-lg font-semibold text-sm transition-colors duration-200 border-2 border-green-500 text-green-600 hover:bg-green-500 hover:text-white">
+                            class="px-5 py-2.5 rounded-lg font-semibold text-sm transition-colors duration-200 border-2 border-green-500 text-green-600 hover:bg-green-500 hover:text-white">
                         ↻ Restart
                     </button>
-                    <a href="/routines/detail?id=${routine.id}"
-                       class="text-gray-400 hover:text-blue-600 p-1 transition-colors"
-                       title="View Details">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
-                        </svg>
-                    </a>
+                    <div class="flex items-center gap-3">
+                        <a href="/routines/detail?id=${routine.id}"
+                           class="text-gray-400 hover:text-blue-600 p-1 transition-colors"
+                           title="View Details">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                            </svg>
+                        </a>
+                        <button onclick="archiveRoutine('${routine.id}')"
+                                class="text-gray-400 hover:text-gray-600 p-1 transition-colors"
+                                title="Archive">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"></path>
+                            </svg>
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -459,6 +492,26 @@ async function restartRoutine(routineId) {
         } else {
             const errorData = await response.json();
             alert(errorData.message || 'Failed to restart routine');
+        }
+    } catch (error) {
+        alert('Network error: ' + error.message);
+    }
+}
+
+async function archiveRoutine(routineId) {
+    if (!confirm('Archive this routine? You can restart it later from the Archived section.')) {
+        return;
+    }
+
+    try {
+        const response = await secureFetch(`/api/routines/${routineId}/archive`, {
+            method: 'POST'
+        });
+
+        if (response.ok) {
+            await loadDashboardData();
+        } else {
+            alert('Failed to archive routine');
         }
     } catch (error) {
         alert('Network error: ' + error.message);
